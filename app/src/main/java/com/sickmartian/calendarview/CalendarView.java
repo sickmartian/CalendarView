@@ -5,12 +5,12 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.ViewGroup;
 
 /**
  * Created by ***REMOVED*** on 11/24/2015.
  */
-public class CalendarView extends View {
+public class CalendarView extends ViewGroup {
 
     private final Paint mTextPaint;
     private final Paint mSeparationPaint;
@@ -29,6 +29,13 @@ public class CalendarView extends View {
         mSeparationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mSeparationPaint.setStyle(Paint.Style.FILL);
         mSeparationPaint.setColor(getResources().getColor(R.color.colorPrimary));
+
+        setWillNotDraw(false);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+
     }
 
     public void setMonth(int month, int year) {
