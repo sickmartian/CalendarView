@@ -14,8 +14,11 @@
     tools:showIn="@layout/activity_main">
 
     <com.sickmartian.calendarview.CalendarView
-        app:separatorColor="@android:color/black"
+        xmlns:calendar_view="http://schemas.android.com/apk/res/com.sickmartian.calendarview"
+        calendar_view:currentDayDecorationDrawable="@drawable/current_day_drawable"
+        app:textSize="12sp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginBottom="100dp"/>
 
 </RelativeLayout>

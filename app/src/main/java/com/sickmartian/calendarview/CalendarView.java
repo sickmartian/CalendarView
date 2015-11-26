@@ -3,20 +3,51 @@ package com.sickmartian.calendarview;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.IntDef;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.ViewGroup;
+
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Created by ***REMOVED*** on 11/24/2015.
  */
 public class CalendarView extends ViewGroup {
 
-    private final Paint mActiveTextColor;
-    private final Paint mSeparationPaint;
-    RectF[] mDayCells = new RectF[42];
-    private float mTextSize;
+    private static final int INITIAL = -1;
+    final Paint mActiveTextColor;
+    final Paint mSeparationPaint;
+    final Paint mInactiveTextColor;
+    final Paint mInactiveBackgroundColor;
+    final Drawable mSelectedDayDrawable;
+    final float mDecorationPadding;
+    RectF[] mDayCells = new RectF[DAYS_IN_GRID];
+    String[] mDayNumbers = new String[DAYS_IN_GRID];
+    float mTextSize;
+    int mLastDayOfMonth;
+    int mFirstCellOfMonth = INITIAL;
+    private int mYear;
+    private int mMonth;
+    private int mSelectedDay;
+    private Rect mReusableTextBound = new Rect();
+    private Paint mCurrentDayTextColor;
+
+    @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
+    public @interface PossibleWeekShift {}
+    public static final int SUNDAY_SHIFT = 0;
+    public static final int SATURDAY_SHIFT = 1;
+    public static final int MONDAY_SHIFT = 6;
+    private int mFirstDayOfTheWeekShift = MONDAY_SHIFT;
+
+    static final int DAYS_IN_GRID = 42;
+    static final int DAYS_IN_WEEK = 7;
 
     public CalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -27,21 +58,40 @@ public class CalendarView extends ViewGroup {
                 0, 0);
 
         try {
+            float sp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4, getResources().getDisplayMetrics());
+
             mTextSize = a.getDimension(R.styleable.CalendarView_textSize,
                     getResources().getDimension(R.dimen.calendar_view_default_text_size));
 
+            mCurrentDayTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mCurrentDayTextColor.setColor(a.getColor(R.styleable.CalendarView_currentDayTextColor, Color.WHITE));
+            mCurrentDayTextColor.setTextSize(mTextSize);
+
             mActiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mActiveTextColor.setColor(a.getColor(R.styleable.CalendarView_activeTextColor,
-                    getResources().getColor(R.color.colorPrimary)));
+            mActiveTextColor.setColor(a.getColor(R.styleable.CalendarView_activeTextColor, Color.BLACK));
             mActiveTextColor.setTextSize(mTextSize);
+
+            mInactiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mInactiveTextColor.setColor(a.getColor(R.styleable.CalendarView_inactiveTextColor, Color.DKGRAY));
+            mInactiveTextColor.setTextSize(mTextSize);
 
             mSeparationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mSeparationPaint.setStyle(Paint.Style.STROKE);
-            mSeparationPaint.setColor(a.getColor(R.styleable.CalendarView_separatorColor,
-                    getResources().getColor(R.color.colorPrimaryDark)));
+            mSeparationPaint.setColor(a.getColor(R.styleable.CalendarView_separatorColor, Color.LTGRAY));
+
+            mInactiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mInactiveBackgroundColor.setStyle(Paint.Style.FILL);
+            mInactiveBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_inactiveBackgroundColor, Color.GRAY));
+
+            mSelectedDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
+
+            mDecorationPadding = a.getDimension(R.styleable.CalendarView_currentDayDecorationPadding, sp4);
         } finally {
             a.recycle();
         }
+
+        setDate(11, 2015);
+        setSelectedDate(Calendar.getInstance());
 
         setWillNotDraw(false);
     }
@@ -51,7 +101,52 @@ public class CalendarView extends ViewGroup {
 
     }
 
-    public void setMonth(int month, int year) {
+    public void setSelectedDate(Calendar date) {
+        // Only mark as selected if it is this month
+        if (date.get(Calendar.YEAR) == mYear &&
+                date.get(Calendar.MONTH) == mMonth) {
+            mSelectedDay = date.get(Calendar.DATE);
+            invalidate();
+        } else if (mSelectedDay != INITIAL) {
+            // Only invalidate previous layout if we had a selected day before
+            mSelectedDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setDate(int month, int year) {
+        mYear = year;
+        mMonth = month - 1;
+
+        // Get first day of the week
+        Calendar cal = getUTCCalendar();
+        makeCalendarBeginningOfDay(cal);
+        cal.set(year, mMonth, 1);
+        int firstDayInWeekOfMonth = cal.get(Calendar.DAY_OF_WEEK) - 1;
+
+        // Get last day of the week
+        mLastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        cal.set(year, mMonth, mLastDayOfMonth);
+        firstDayInWeekOfMonth = ( firstDayInWeekOfMonth + mFirstDayOfTheWeekShift ) % 7;
+
+        cal.add(Calendar.MONTH, -1);
+        cal.set(Calendar.DATE, 1);
+        int lastDayOfLastMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int day;
+        mFirstCellOfMonth = INITIAL;
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            if (i < firstDayInWeekOfMonth) {
+                day = lastDayOfLastMonth - firstDayInWeekOfMonth + i + 1;
+            } else if ( i < firstDayInWeekOfMonth + mLastDayOfMonth ){
+                day = i - firstDayInWeekOfMonth + 1;
+                if (mFirstCellOfMonth == INITIAL) {
+                    mFirstCellOfMonth = i;
+                }
+            } else {
+                day = i - firstDayInWeekOfMonth - mLastDayOfMonth + 1;
+            }
+            mDayNumbers[i] = Integer.toString(day);
+        }
 
         invalidate();
     }
@@ -71,8 +166,6 @@ public class CalendarView extends ViewGroup {
                         widthStep * (col + 1), heightStep * (row + 1));
             }
         }
-
-        ROWS = 5;
     }
 
     RectF mBounds;
@@ -100,8 +193,51 @@ public class CalendarView extends ViewGroup {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        for (RectF cell : mDayCells) {
-            canvas.drawRect(cell, mSeparationPaint);
+        // Separation lines go first
+        canvas.drawLine(0, mDayCells[7].top, getWidth(), mDayCells[7].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[14].top, getWidth(), mDayCells[14].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[21].top, getWidth(), mDayCells[21].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[28].top, getWidth(), mDayCells[28].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[35].top, getWidth(), mDayCells[35].top, mSeparationPaint);
+
+        int lastCellOfMonth = mFirstCellOfMonth + mLastDayOfMonth - 1;
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            // Cell in month
+            if (i >= mFirstCellOfMonth && i <= lastCellOfMonth) {
+                int day =  i - mFirstCellOfMonth + 1;
+                if (mSelectedDay == day && mSelectedDayDrawable != null) {
+                    mCurrentDayTextColor.getTextBounds(mDayNumbers[i], 0, mDayNumbers[i].length(), mReusableTextBound);
+                    int maxWH = Math.max(mReusableTextBound.width(), mReusableTextBound.height());
+                    mSelectedDayDrawable.setBounds((int) ( mDayCells[i].left - mDecorationPadding ),
+                            (int) ( mDayCells[i].top - mDecorationPadding ),
+                            (int) ( mDayCells[i].left + maxWH + mDecorationPadding ),
+                            (int) (mDayCells[i].top + maxWH + mDecorationPadding));
+                    mSelectedDayDrawable.draw(canvas);
+
+                    canvas.drawText(mDayNumbers[i],
+                            mDayCells[i].left, mDayCells[i].top + mTextSize, mCurrentDayTextColor);
+                } else {
+                    canvas.drawText(mDayNumbers[i],
+                            mDayCells[i].left, mDayCells[i].top + mTextSize, mActiveTextColor);
+                }
+
+                // Cell not in month
+            } else {
+                canvas.drawRect(mDayCells[i], mInactiveBackgroundColor);
+                canvas.drawText(mDayNumbers[i],
+                        mDayCells[i].left, mDayCells[i].top + mTextSize, mInactiveTextColor);
+            }
         }
+    }
+
+    public static Calendar getUTCCalendar() {
+        return Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    }
+
+    public static void makeCalendarBeginningOfDay(Calendar calendar) {
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
     }
 }
