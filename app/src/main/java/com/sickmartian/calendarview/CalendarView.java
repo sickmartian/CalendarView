@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 
+import java.text.DateFormatSymbols;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -38,6 +39,7 @@ public class CalendarView extends ViewGroup {
     private int mSelectedDay;
     private Rect mReusableTextBound = new Rect();
     private Paint mCurrentDayTextColor;
+    private String[] mWeekDays;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -92,6 +94,7 @@ public class CalendarView extends ViewGroup {
 
         setDate(11, 2015);
         setSelectedDate(Calendar.getInstance());
+        setupWeekDays();
 
         setWillNotDraw(false);
     }
@@ -156,14 +159,26 @@ public class CalendarView extends ViewGroup {
         mBounds = new RectF(0, 0, w - getPaddingLeft() - getPaddingRight(),
                 h - getPaddingBottom() - getPaddingTop());
 
+        mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
+        int firstRowExtraHeight = (int) (mReusableTextBound.height() + mDecorationPadding);
+
         int COLS = 7;
         int ROWS = 6;
         float widthStep = w / COLS;
-        float heightStep = h / ROWS;
+        float heightStep = ( h - firstRowExtraHeight ) / ROWS;
         for (int col = 0; col < COLS; col++) {
+            int lastBottom = INITIAL;
             for (int row = 0; row < ROWS; row++) {
-                mDayCells[row * COLS  + col] = new RectF(widthStep * col, heightStep * row,
-                        widthStep * (col + 1), heightStep * (row + 1));
+                if (row == 0) {
+                    lastBottom = (int) (heightStep * (row + 1) + firstRowExtraHeight);
+                    mDayCells[row * COLS  + col] = new RectF(widthStep * col, heightStep * row,
+                            widthStep * (col + 1), lastBottom);
+                } else {
+                    int newBottom = (int) (lastBottom + heightStep);
+                    mDayCells[row * COLS  + col] = new RectF(widthStep * col, lastBottom,
+                            widthStep * (col + 1), newBottom);
+                    lastBottom = newBottom;
+                }
             }
         }
     }
@@ -239,5 +254,15 @@ public class CalendarView extends ViewGroup {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
+    }
+
+    protected void setupWeekDays() {
+        mWeekDays = new String[DAYS_IN_WEEK];
+        String[] namesOfDays = new DateFormatSymbols().getShortWeekdays();
+        for (int i = 0; i < DAYS_IN_WEEK; i++) {
+            mWeekDays[i] = namesOfDays[1 + (7 - mFirstDayOfTheWeekShift + i) % 7]
+                            .toUpperCase()
+                            .substring(0, 1);
+        }
     }
 }
