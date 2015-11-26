@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CalendarView">
+        <attr name="showOverflow" format="boolean" />
+        <attr name="separatorColor" format="color"/>
+        <attr name="textSize" format="dimension"/>
+        <attr name="activeTextColor" format="color"/>
+        <attr name="inactiveTextColor" format="color"/>
+        <attr name="activeBackgroundColor" format="color"/>
+        <attr name="selectedBackgroundColor" format="color"/>
+        <attr name="inactiveBackgroundColor" format="color"/>
+    </declare-styleable>
+</resources>
