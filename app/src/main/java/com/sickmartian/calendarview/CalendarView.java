@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.ViewGroup;
 
 import java.text.DateFormatSymbols;
@@ -117,7 +118,28 @@ public class CalendarView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        final int count = getChildCount();
 
+        int cellsWithOffset = 0;
+        if (mFirstCellOfMonth < 7) {
+            cellsWithOffset = 7 - mFirstCellOfMonth;
+        }
+
+        float topOffset = mBetweenSiblingsPadding + mSingleLetterHeight;
+        for (int i = 0; i < count; i++) {
+            final View child = getChildAt(i);
+            if (child.getVisibility() != GONE) {
+                if (i >= cellsWithOffset) {
+                    topOffset = 0;
+                }
+                child.layout(
+                        (int) mDayCells[i + mFirstCellOfMonth].left,
+                        (int) (mDayCells[i + mFirstCellOfMonth].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset),
+                        (int) mDayCells[i + mFirstCellOfMonth].right,
+                        (int) mDayCells[i + mFirstCellOfMonth].bottom);
+
+            }
+        }
     }
 
     public void setSelectedDate(Calendar date) {
@@ -165,6 +187,10 @@ public class CalendarView extends ViewGroup {
                 day = i - firstDayInWeekOfMonth - mLastDayOfMonth + 1;
             }
             mDayNumbers[i] = Integer.toString(day);
+        }
+
+        for (int i = 0; i < mLastDayOfMonth; i++) {
+            addView(new ChildView(getContext(), null));
         }
 
         invalidate();
@@ -314,6 +340,13 @@ public class CalendarView extends ViewGroup {
             mWeekDays[i] = namesOfDays[1 + (7 - mFirstDayOfTheWeekShift + i) % 7]
                             .toUpperCase()
                             .substring(0, 1);
+        }
+    }
+
+    private static class ChildView extends View {
+        public ChildView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+            setBackgroundColor(getResources().getColor(R.color.colorAccent));
         }
     }
 }
