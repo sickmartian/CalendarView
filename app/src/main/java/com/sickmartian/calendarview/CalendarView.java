@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.text.DateFormatSymbols;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -44,6 +45,7 @@ public class CalendarView extends ViewGroup {
     private String[] mWeekDays;
     private int mSingleLetterWidth;
     private int mSingleLetterHeight;
+    ArrayList<ArrayList<View>> mChildInDays;
 
     int mDecorationLeftExtra;
     int mDecorationTopExtra;
@@ -103,6 +105,11 @@ public class CalendarView extends ViewGroup {
 
             mDecorationLeftExtra = (int) mBetweenSiblingsPadding;
             mDecorationTopExtra = (int) mBetweenSiblingsPadding;
+
+            mChildInDays = new ArrayList<>();
+            for (int i = 0; i < DAYS_IN_GRID; i++) {
+                mChildInDays.add(i, new ArrayList<View>());
+            }
         } finally {
             a.recycle();
         }
@@ -116,28 +123,40 @@ public class CalendarView extends ViewGroup {
         setWillNotDraw(false);
     }
 
+    public void addViewToCell(int cellNumber, View viewToAppend) {
+        addView(viewToAppend);
+
+        ArrayList<View> dayArray = mChildInDays.get(cellNumber);
+        dayArray.add(viewToAppend);
+        mChildInDays.set(cellNumber, dayArray);
+
+        invalidate();
+    }
+
+    public void addViewToDayInMonth(int dayInMonth, View viewToAppend) {
+        if (dayInMonth > mLastDayOfMonth) return;
+        addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
+    }
+
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        final int count = getChildCount();
-
-        int cellsWithOffset = 0;
-        if (mFirstCellOfMonth < 7) {
-            cellsWithOffset = 7 - mFirstCellOfMonth;
-        }
-
         float topOffset = mBetweenSiblingsPadding + mSingleLetterHeight;
-        for (int i = 0; i < count; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() != GONE) {
-                if (i >= cellsWithOffset) {
-                    topOffset = 0;
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            ArrayList<View> childArrayForDay = mChildInDays.get(i);
+            for (int j = 0; j < childArrayForDay.size(); j++) {
+                View viewToPlace = childArrayForDay.get(j);
+                if (viewToPlace.getVisibility() != GONE) {
+                    if (i >= 7) {
+                        topOffset = 0;
+                    }
+                    int left = (int) mDayCells[i].left;
+                    int top = (int) (mDayCells[i].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset);
+                    viewToPlace.layout(
+                            left,
+                            top,
+                            left + viewToPlace.getMeasuredWidth(),
+                            top + viewToPlace.getMeasuredHeight());
                 }
-                child.layout(
-                        (int) mDayCells[i + mFirstCellOfMonth].left,
-                        (int) (mDayCells[i + mFirstCellOfMonth].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset),
-                        (int) mDayCells[i + mFirstCellOfMonth].right,
-                        (int) mDayCells[i + mFirstCellOfMonth].bottom);
-
             }
         }
     }
@@ -189,10 +208,6 @@ public class CalendarView extends ViewGroup {
             mDayNumbers[i] = Integer.toString(day);
         }
 
-        for (int i = 0; i < mLastDayOfMonth; i++) {
-            addView(new ChildView(getContext(), null));
-        }
-
         invalidate();
     }
 
@@ -238,11 +253,39 @@ public class CalendarView extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-        int w = resolveSizeAndState((int) (mTextSize * 4), widthMeasureSpec, 0);
-        int h = resolveSizeAndState((int) mTextSize, heightMeasureSpec, 0);
+        // We have a fixed size, we can omit some child views if they don't fit later
+        int w = resolveSizeAndState((int) (
+                (mSingleLetterWidth + mBetweenSiblingsPadding ) // Single column min size
+                        * 2 // For chars in days of the month
+                        * DAYS_IN_WEEK),
+                widthMeasureSpec, 0);
+        int h = resolveSizeAndState((int) (( mBetweenSiblingsPadding * 4 + mSingleLetterHeight ) * DAYS_IN_WEEK), heightMeasureSpec, 0);
 
         setMeasuredDimension(w, h);
+
+        // Measure child layouts if we have
+        if (mDayCells.length == 0 || mDayCells[0] == null) return;
+
+        float topOffset = mBetweenSiblingsPadding + mSingleLetterHeight;
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            ArrayList<View> childArrayForDay = mChildInDays.get(i);
+            for (int j = 0; j < childArrayForDay.size(); j++) {
+                View viewToPlace = childArrayForDay.get(j);
+                if (viewToPlace.getVisibility() != GONE) {
+                    if (i >= DAYS_IN_WEEK) {
+                        topOffset = 0;
+                    }
+                    int left = (int) mDayCells[i].left;
+                    int top = (int) (mDayCells[i].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset);
+                    int right = (int) mDayCells[i].right;
+                    int bottom = (int) mDayCells[i].bottom;
+
+                    int wSpec = MeasureSpec.makeMeasureSpec(Math.round(right - left), MeasureSpec.AT_MOST);
+                    int hSpec = MeasureSpec.makeMeasureSpec(Math.round(bottom - top), MeasureSpec.AT_MOST);
+                    viewToPlace.measure(wSpec, hSpec);
+                }
+            }
+        }
     }
 
     @Override
@@ -343,10 +386,4 @@ public class CalendarView extends ViewGroup {
         }
     }
 
-    private static class ChildView extends View {
-        public ChildView(Context context, AttributeSet attrs) {
-            super(context, attrs);
-            setBackgroundColor(getResources().getColor(R.color.colorAccent));
-        }
-    }
 }

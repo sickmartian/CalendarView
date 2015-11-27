@@ -11,12 +11,32 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    CalendarView mCalendarView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mCalendarView = (CalendarView) findViewById(R.id.calendar_view);
+        View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(1, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(30, testView1);
+
+        // Invalid day
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(31, testView1);
+
+        // Bounds
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToCell(0, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToCell(41, testView1);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
