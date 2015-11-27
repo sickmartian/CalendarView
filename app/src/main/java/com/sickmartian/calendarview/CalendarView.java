@@ -28,7 +28,7 @@ public class CalendarView extends ViewGroup {
     final Paint mInactiveTextColor;
     final Paint mInactiveBackgroundColor;
     final Drawable mSelectedDayDrawable;
-    final float mDecorationPadding;
+    final float mDecorationSize;
     final float mBetweenSiblingsPadding;
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     String[] mDayNumbers = new String[DAYS_IN_GRID];
@@ -43,6 +43,11 @@ public class CalendarView extends ViewGroup {
     private String[] mWeekDays;
     private int mSingleLetterWidth;
     private int mSingleLetterHeight;
+
+    int mDecorationLeftExtra;
+    int mDecorationRightExtra;
+    int mDecorationTopExtra;
+    int mDecorationBottomExtra;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -90,19 +95,25 @@ public class CalendarView extends ViewGroup {
 
             mSelectedDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
 
-            mDecorationPadding = a.getDimension(R.styleable.CalendarView_currentDayDecorationPadding, sp4);
+            mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, sp4);
             mBetweenSiblingsPadding = sp4;
 
             mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
             mSingleLetterWidth = mReusableTextBound.width();
             mSingleLetterHeight = mReusableTextBound.height();
+
+            int maxWH = Math.max(mSingleLetterWidth, mSingleLetterHeight);
+            mDecorationLeftExtra = (int) mBetweenSiblingsPadding;
+            mDecorationRightExtra = (int) (mDecorationLeftExtra + maxWH + mDecorationSize);
+            mDecorationTopExtra = (int) mBetweenSiblingsPadding;
+            mDecorationBottomExtra = (int) (mDecorationTopExtra + maxWH + mDecorationSize);
         } finally {
             a.recycle();
         }
 
         setDate(11, 2015);
         Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(Calendar.DATE, 2);
+        selectedDate.set(Calendar.DATE, 26);
         setSelectedDate(selectedDate);
         setupWeekDays();
 
@@ -231,12 +242,10 @@ public class CalendarView extends ViewGroup {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
 
-                    int maxWH = Math.max(mSingleLetterWidth, mSingleLetterHeight);
-                    int l = (int) (mDayCells[i].left + mBetweenSiblingsPadding);
-                    int r = (int) (l + maxWH + mDecorationPadding);
-                    int t = (int) (mDayCells[i].top + mBetweenSiblingsPadding);
-                    int b = (int) (t + maxWH + mDecorationPadding);
-                    mSelectedDayDrawable.setBounds(l, t, r, b);
+                    mSelectedDayDrawable.setBounds((int)(mDayCells[i].left + mDecorationLeftExtra),
+                            (int)(mDayCells[i].top + mDecorationTopExtra),
+                            (int)(mDayCells[i].left + mDecorationRightExtra),
+                            (int)(mDayCells[i].top + mDecorationBottomExtra));
                     mSelectedDayDrawable.draw(canvas);
 
                     drawDayTextsInCell(canvas, i, mCurrentDayTextColor);
@@ -263,13 +272,14 @@ public class CalendarView extends ViewGroup {
                     mCurrentDayTextColor);
             topOffset += mTextSize + mBetweenSiblingsPadding;
         }
-        float leftExtra = mSingleLetterWidth / 2;
+        float leftExtra = mSingleLetterWidth / 3;
         if (mDayNumbers[cellNumber].length() == 2) {
-            leftExtra /= 2;
+            leftExtra /= 4;
         }
+        float topExtra = - mSingleLetterHeight / 4;
         canvas.drawText(mDayNumbers[cellNumber],
-                mDayCells[cellNumber].left + mBetweenSiblingsPadding + mDecorationPadding / 2 + leftExtra,
-                mDayCells[cellNumber].top + mBetweenSiblingsPadding + mDecorationPadding / 2 + topOffset,
+                mDayCells[cellNumber].left + mDecorationLeftExtra + mDecorationSize / 2 + leftExtra,
+                mDayCells[cellNumber].top + mDecorationTopExtra + mDecorationSize / 2 + topOffset + topExtra,
                 mCurrentDayTextColor);
     }
 

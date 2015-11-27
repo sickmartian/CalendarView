@@ -14,7 +14,7 @@
 
         // Decoration
         <attr name="currentDayDecorationDrawable" format="reference"/>
-        <attr name="currentDayDecorationPadding" format="dimension"/>
+        <attr name="currentDayDecorationSize" format="dimension"/>
 
         // More
         <attr name="showOverflow" format="boolean" />
