@@ -241,7 +241,7 @@ public class CalendarView extends ViewGroup {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
 
-                    float topOffset = mBetweenSiblingsPadding;
+                    float topOffset = 0;
                     if (i < 7) {
                         topOffset += mBetweenSiblingsPadding + mSingleLetterHeight;
                     }
@@ -270,13 +270,15 @@ public class CalendarView extends ViewGroup {
                                     Paint mCurrentDayTextColor,
                                     Paint mCurrentWeekDayTextColor) {
         float topOffset = 0;
+
         if (cellNumber < 7) {
             mCurrentWeekDayTextColor.getTextBounds(mWeekDays[cellNumber], 0, mWeekDays[cellNumber].length(), mReusableTextBound);
 
             int decorationLeftOffset = 0;
             if (mDecorationSize > 0) {
-                decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
+                decorationLeftOffset = (int) (mDecorationSize / 2 - mReusableTextBound.width() / 2);//((mDecorationSize - mReusableTextBound.width()) / 2);
             }
+
             canvas.drawText(mWeekDays[cellNumber],
                     mDayCells[cellNumber].left + mDecorationLeftExtra + decorationLeftOffset,
                     mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height(),
@@ -284,13 +286,11 @@ public class CalendarView extends ViewGroup {
             topOffset = mBetweenSiblingsPadding + mReusableTextBound.height();
         }
 
-        mCurrentWeekDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
+        mCurrentDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
         int decorationLeftOffset = 0;
-        if (mDecorationSize > 0) {
-            decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
-        }
         int decorationTopOffset = 0;
         if (mDecorationSize > 0) {
+            decorationLeftOffset = (int) (mDecorationSize / 2 - mReusableTextBound.width() / 2);
             decorationTopOffset = (int) ((mDecorationSize - mReusableTextBound.height()) / 2);
         }
 
