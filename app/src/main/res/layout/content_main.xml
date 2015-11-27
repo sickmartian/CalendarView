@@ -16,6 +16,7 @@
     <com.sickmartian.calendarview.CalendarView
         xmlns:calendar_view="http://schemas.android.com/apk/res/com.sickmartian.calendarview"
         calendar_view:currentDayDecorationDrawable="@drawable/current_day_drawable"
+        app:currentDayDecorationPadding="8dp"
         app:textSize="12sp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

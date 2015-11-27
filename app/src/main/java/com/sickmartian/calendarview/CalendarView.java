@@ -29,6 +29,7 @@ public class CalendarView extends ViewGroup {
     final Paint mInactiveBackgroundColor;
     final Drawable mSelectedDayDrawable;
     final float mDecorationPadding;
+    final float mBetweenSiblingsPadding;
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     String[] mDayNumbers = new String[DAYS_IN_GRID];
     float mTextSize;
@@ -40,6 +41,8 @@ public class CalendarView extends ViewGroup {
     private Rect mReusableTextBound = new Rect();
     private Paint mCurrentDayTextColor;
     private String[] mWeekDays;
+    private int mSingleLetterWidth;
+    private int mSingleLetterHeight;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -66,7 +69,7 @@ public class CalendarView extends ViewGroup {
                     getResources().getDimension(R.dimen.calendar_view_default_text_size));
 
             mCurrentDayTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCurrentDayTextColor.setColor(a.getColor(R.styleable.CalendarView_currentDayTextColor, Color.WHITE));
+            mCurrentDayTextColor.setColor(a.getColor(R.styleable.CalendarView_currentDayTextColor, Color.CYAN));
             mCurrentDayTextColor.setTextSize(mTextSize);
 
             mActiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -88,12 +91,19 @@ public class CalendarView extends ViewGroup {
             mSelectedDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
 
             mDecorationPadding = a.getDimension(R.styleable.CalendarView_currentDayDecorationPadding, sp4);
+            mBetweenSiblingsPadding = sp4;
+
+            mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
+            mSingleLetterWidth = mReusableTextBound.width();
+            mSingleLetterHeight = mReusableTextBound.height();
         } finally {
             a.recycle();
         }
 
         setDate(11, 2015);
-        setSelectedDate(Calendar.getInstance());
+        Calendar selectedDate = Calendar.getInstance();
+        selectedDate.set(Calendar.DATE, 2);
+        setSelectedDate(selectedDate);
         setupWeekDays();
 
         setWillNotDraw(false);
@@ -159,8 +169,7 @@ public class CalendarView extends ViewGroup {
         mBounds = new RectF(0, 0, w - getPaddingLeft() - getPaddingRight(),
                 h - getPaddingBottom() - getPaddingTop());
 
-        mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
-        int firstRowExtraHeight = (int) (mReusableTextBound.height() + mDecorationPadding);
+        int firstRowExtraHeight = (int) (mSingleLetterHeight + mBetweenSiblingsPadding);
 
         int COLS = 7;
         int ROWS = 6;
@@ -221,28 +230,47 @@ public class CalendarView extends ViewGroup {
             if (i >= mFirstCellOfMonth && i <= lastCellOfMonth) {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
-                    mCurrentDayTextColor.getTextBounds(mDayNumbers[i], 0, mDayNumbers[i].length(), mReusableTextBound);
-                    int maxWH = Math.max(mReusableTextBound.width(), mReusableTextBound.height());
-                    mSelectedDayDrawable.setBounds((int) ( mDayCells[i].left - mDecorationPadding ),
-                            (int) ( mDayCells[i].top - mDecorationPadding ),
-                            (int) ( mDayCells[i].left + maxWH + mDecorationPadding ),
-                            (int) (mDayCells[i].top + maxWH + mDecorationPadding));
+
+                    int maxWH = Math.max(mSingleLetterWidth, mSingleLetterHeight);
+                    int l = (int) (mDayCells[i].left + mBetweenSiblingsPadding);
+                    int r = (int) (l + maxWH + mDecorationPadding);
+                    int t = (int) (mDayCells[i].top + mBetweenSiblingsPadding);
+                    int b = (int) (t + maxWH + mDecorationPadding);
+                    mSelectedDayDrawable.setBounds(l, t, r, b);
                     mSelectedDayDrawable.draw(canvas);
 
-                    canvas.drawText(mDayNumbers[i],
-                            mDayCells[i].left, mDayCells[i].top + mTextSize, mCurrentDayTextColor);
+                    drawDayTextsInCell(canvas, i, mCurrentDayTextColor);
                 } else {
-                    canvas.drawText(mDayNumbers[i],
-                            mDayCells[i].left, mDayCells[i].top + mTextSize, mActiveTextColor);
+                    drawDayTextsInCell(canvas, i, mActiveTextColor);
                 }
 
                 // Cell not in month
             } else {
                 canvas.drawRect(mDayCells[i], mInactiveBackgroundColor);
-                canvas.drawText(mDayNumbers[i],
-                        mDayCells[i].left, mDayCells[i].top + mTextSize, mInactiveTextColor);
+                drawDayTextsInCell(canvas, i, mInactiveTextColor);
             }
         }
+    }
+
+    private void drawDayTextsInCell(Canvas canvas,
+                                    int cellNumber,
+                                    Paint mCurrentDayTextColor) {
+        float topOffset = mTextSize + mBetweenSiblingsPadding;
+        if (cellNumber < 7) {
+            canvas.drawText(mWeekDays[cellNumber],
+                    mDayCells[cellNumber].left,
+                    mDayCells[cellNumber].top + topOffset,
+                    mCurrentDayTextColor);
+            topOffset += mTextSize + mBetweenSiblingsPadding;
+        }
+        float leftExtra = mSingleLetterWidth / 2;
+        if (mDayNumbers[cellNumber].length() == 2) {
+            leftExtra /= 2;
+        }
+        canvas.drawText(mDayNumbers[cellNumber],
+                mDayCells[cellNumber].left + mBetweenSiblingsPadding + mDecorationPadding / 2 + leftExtra,
+                mDayCells[cellNumber].top + mBetweenSiblingsPadding + mDecorationPadding / 2 + topOffset,
+                mCurrentDayTextColor);
     }
 
     public static Calendar getUTCCalendar() {
