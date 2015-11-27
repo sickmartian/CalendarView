@@ -102,11 +102,10 @@ public class CalendarView extends ViewGroup {
             mSingleLetterWidth = mReusableTextBound.width();
             mSingleLetterHeight = mReusableTextBound.height();
 
-            int maxWH = Math.max(mSingleLetterWidth, mSingleLetterHeight);
             mDecorationLeftExtra = (int) mBetweenSiblingsPadding;
-            mDecorationRightExtra = (int) (mDecorationLeftExtra + maxWH + mDecorationSize);
+            mDecorationRightExtra = (int) (mDecorationLeftExtra + mDecorationSize);
             mDecorationTopExtra = (int) mBetweenSiblingsPadding;
-            mDecorationBottomExtra = (int) (mDecorationTopExtra + maxWH + mDecorationSize);
+            mDecorationBottomExtra = (int) (mDecorationTopExtra + mDecorationSize);
         } finally {
             a.recycle();
         }
@@ -242,9 +241,10 @@ public class CalendarView extends ViewGroup {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
 
-                    float topOffset = 0;
-
-                    if (i < 7) topOffset += mTextSize + mBetweenSiblingsPadding;
+                    float topOffset = mBetweenSiblingsPadding;
+                    if (i < 7) {
+                        topOffset += mBetweenSiblingsPadding + mSingleLetterHeight;
+                    }
 
                     mSelectedDayDrawable.setBounds((int)(mDayCells[i].left + mDecorationLeftExtra),
                             (int)(mDayCells[i].top + mDecorationTopExtra + topOffset),
@@ -269,26 +269,34 @@ public class CalendarView extends ViewGroup {
                                     int cellNumber,
                                     Paint mCurrentDayTextColor,
                                     Paint mCurrentWeekDayTextColor) {
-        float topOffset = mTextSize + mBetweenSiblingsPadding;
-        float decorationExtra = mDecorationLeftExtra + mDecorationSize / 2;
-        float singleLetterExtra = mSingleLetterWidth / 3;
-
+        float topOffset = 0;
         if (cellNumber < 7) {
+            mCurrentWeekDayTextColor.getTextBounds(mWeekDays[cellNumber], 0, mWeekDays[cellNumber].length(), mReusableTextBound);
+
+            int decorationLeftOffset = 0;
+            if (mDecorationSize > 0) {
+                decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
+            }
             canvas.drawText(mWeekDays[cellNumber],
-                    mDayCells[cellNumber].left  + decorationExtra + singleLetterExtra,
-                    mDayCells[cellNumber].top + topOffset,
+                    mDayCells[cellNumber].left + mDecorationLeftExtra + decorationLeftOffset,
+                    mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height(),
                     mCurrentWeekDayTextColor);
-            topOffset *= 2;
+            topOffset = mBetweenSiblingsPadding + mReusableTextBound.height();
         }
 
-        float leftLetterExtra = singleLetterExtra;
-        if (mDayNumbers[cellNumber].length() == 2) {
-            leftLetterExtra /= 4;
+        mCurrentWeekDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
+        int decorationLeftOffset = 0;
+        if (mDecorationSize > 0) {
+            decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
         }
-        float topLetterExtra = - mSingleLetterHeight / 4;
+        int decorationTopOffset = 0;
+        if (mDecorationSize > 0) {
+            decorationTopOffset = (int) ((mDecorationSize - mReusableTextBound.height()) / 2);
+        }
+
         canvas.drawText(mDayNumbers[cellNumber],
-                mDayCells[cellNumber].left + decorationExtra + leftLetterExtra,
-                mDayCells[cellNumber].top + decorationExtra + topOffset + topLetterExtra,
+                mDayCells[cellNumber].left + mDecorationLeftExtra + decorationLeftOffset,
+                mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height() + decorationTopOffset + topOffset,
                 mCurrentDayTextColor);
     }
 
