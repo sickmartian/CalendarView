@@ -45,9 +45,7 @@ public class CalendarView extends ViewGroup {
     private int mSingleLetterHeight;
 
     int mDecorationLeftExtra;
-    int mDecorationRightExtra;
     int mDecorationTopExtra;
-    int mDecorationBottomExtra;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -103,16 +101,14 @@ public class CalendarView extends ViewGroup {
             mSingleLetterHeight = mReusableTextBound.height();
 
             mDecorationLeftExtra = (int) mBetweenSiblingsPadding;
-            mDecorationRightExtra = (int) (mDecorationLeftExtra + mDecorationSize);
             mDecorationTopExtra = (int) mBetweenSiblingsPadding;
-            mDecorationBottomExtra = (int) (mDecorationTopExtra + mDecorationSize);
         } finally {
             a.recycle();
         }
 
         setDate(11, 2015);
         Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(Calendar.DATE, 1);
+        selectedDate.set(Calendar.DATE, 22);
         setSelectedDate(selectedDate);
         setupWeekDays();
 
@@ -248,8 +244,8 @@ public class CalendarView extends ViewGroup {
 
                     mSelectedDayDrawable.setBounds((int)(mDayCells[i].left + mDecorationLeftExtra),
                             (int)(mDayCells[i].top + mDecorationTopExtra + topOffset),
-                            (int)(mDayCells[i].left + mDecorationRightExtra),
-                            (int)(mDayCells[i].top + mDecorationBottomExtra + topOffset));
+                            (int)(mDayCells[i].left + mDecorationLeftExtra + mDecorationSize),
+                            (int)(mDayCells[i].top + mDecorationTopExtra + mDecorationSize + topOffset));
                     mSelectedDayDrawable.draw(canvas);
 
                     drawDayTextsInCell(canvas, i, mCurrentDayTextColor, mActiveTextColor);
@@ -276,7 +272,7 @@ public class CalendarView extends ViewGroup {
 
             int decorationLeftOffset = 0;
             if (mDecorationSize > 0) {
-                decorationLeftOffset = (int) (mDecorationSize / 2 - mReusableTextBound.width() / 2);//((mDecorationSize - mReusableTextBound.width()) / 2);
+                decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
             }
 
             canvas.drawText(mWeekDays[cellNumber],
@@ -290,7 +286,7 @@ public class CalendarView extends ViewGroup {
         int decorationLeftOffset = 0;
         int decorationTopOffset = 0;
         if (mDecorationSize > 0) {
-            decorationLeftOffset = (int) (mDecorationSize / 2 - mReusableTextBound.width() / 2);
+            decorationLeftOffset = (int) ((mDecorationSize - mReusableTextBound.width()) / 2);
             decorationTopOffset = (int) ((mDecorationSize - mReusableTextBound.height()) / 2);
         }
 
