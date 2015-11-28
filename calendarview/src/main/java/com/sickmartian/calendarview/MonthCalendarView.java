@@ -27,7 +27,7 @@ import java.util.TimeZone;
 /**
  * Created by ***REMOVED*** on 11/24/2015.
  */
-public class CalendarView extends ViewGroup
+public class MonthCalendarView extends ViewGroup
         implements GestureDetector.OnGestureListener {
 
     private static final int INITIAL = -1;
@@ -82,16 +82,16 @@ public class CalendarView extends ViewGroup
     GestureDetectorCompat mDetector;
     DaySelectionListener mDaySelectionListener;
     public interface DaySelectionListener {
-        void onTapEnded(CalendarView calendarView, int day);
-        void onLongClick(CalendarView calendarView, int day);
+        void onTapEnded(MonthCalendarView monthCalendarView, int day);
+        void onLongClick(MonthCalendarView monthCalendarView, int day);
     }
 
-    public CalendarView(Context context, AttributeSet attrs) {
+    public MonthCalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.CalendarView,
+                R.styleable.MonthCalendarView,
                 0, 0);
 
         float dp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
@@ -99,50 +99,50 @@ public class CalendarView extends ViewGroup
 
         try {
             // Text
-            mTextSize = a.getDimension(R.styleable.CalendarView_textSize,
+            mTextSize = a.getDimension(R.styleable.MonthCalendarView_textSize,
                     getResources().getDimension(R.dimen.calendar_view_default_text_size));
 
             mCurrentDayTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCurrentDayTextColor.setColor(a.getColor(R.styleable.CalendarView_currentDayTextColor, Color.WHITE));
+            mCurrentDayTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_currentDayTextColor, Color.WHITE));
             mCurrentDayTextColor.setTextSize(mTextSize);
 
             mActiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mActiveTextColor.setColor(a.getColor(R.styleable.CalendarView_activeTextColor, Color.BLACK));
+            mActiveTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_activeTextColor, Color.BLACK));
             mActiveTextColor.setTextSize(mTextSize);
 
             mInactiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mInactiveTextColor.setColor(a.getColor(R.styleable.CalendarView_inactiveTextColor, Color.DKGRAY));
+            mInactiveTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_inactiveTextColor, Color.DKGRAY));
             mInactiveTextColor.setTextSize(mTextSize);
 
             // Cell background
             mSeparationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mSeparationPaint.setStyle(Paint.Style.STROKE);
-            mSeparationPaint.setColor(a.getColor(R.styleable.CalendarView_separatorColor, Color.LTGRAY));
+            mSeparationPaint.setColor(a.getColor(R.styleable.MonthCalendarView_separatorColor, Color.LTGRAY));
 
             mActiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
             mActiveBackgroundColor.setStyle(Paint.Style.FILL);
-            mActiveBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_activeBackgroundColor, Color.WHITE));
+            mActiveBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_activeBackgroundColor, Color.WHITE));
 
             mInactiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
             mInactiveBackgroundColor.setStyle(Paint.Style.FILL);
-            mInactiveBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_inactiveBackgroundColor, Color.GRAY));
+            mInactiveBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_inactiveBackgroundColor, Color.GRAY));
 
             mSelectedBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
             mSelectedBackgroundColor.setStyle(Paint.Style.FILL);
-            mSelectedBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_selectedBackgroundColor, Color.YELLOW));
+            mSelectedBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_selectedBackgroundColor, Color.YELLOW));
 
             // Decoration
-            mCurrentDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
+            mCurrentDayDrawable = a.getDrawable(R.styleable.MonthCalendarView_currentDayDecorationDrawable);
 
-            mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, 0);
+            mDecorationSize = a.getDimension(R.styleable.MonthCalendarView_currentDayDecorationSize, 0);
             mBetweenSiblingsPadding = dp4;
 
             // Overflow
-            mShowOverflow = a.getBoolean(R.styleable.CalendarView_showOverflow, true);
+            mShowOverflow = a.getBoolean(R.styleable.MonthCalendarView_showOverflow, true);
             mOverflowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mOverflowPaint.setStyle(Paint.Style.FILL);
-            mOverflowPaint.setColor(a.getColor(R.styleable.CalendarView_overflowColor, Color.GREEN));
-            mOverflowHeight = a.getDimension(R.styleable.CalendarView_overflowHeight,
+            mOverflowPaint.setColor(a.getColor(R.styleable.MonthCalendarView_overflowColor, Color.GREEN));
+            mOverflowHeight = a.getDimension(R.styleable.MonthCalendarView_overflowHeight,
                     getResources().getDimension(R.dimen.calendar_view_default_overflow_height));
         } finally {
             a.recycle();
