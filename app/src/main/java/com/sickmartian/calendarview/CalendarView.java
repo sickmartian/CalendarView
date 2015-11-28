@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,8 +48,8 @@ public class CalendarView extends ViewGroup {
     private int mSingleLetterHeight;
     ArrayList<ArrayList<View>> mChildInDays;
 
-    int mDecorationLeftExtra;
-    int mDecorationTopExtra;
+    private float mEndOfHeaderWithoutWeekday;
+    private float mEndOfHeaderWithWeekday;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -103,8 +104,13 @@ public class CalendarView extends ViewGroup {
             mSingleLetterWidth = mReusableTextBound.width();
             mSingleLetterHeight = mReusableTextBound.height();
 
-            mDecorationLeftExtra = (int) mBetweenSiblingsPadding;
-            mDecorationTopExtra = (int) mBetweenSiblingsPadding;
+            if (mDecorationSize > 0) {
+                mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2+ mDecorationSize;
+                mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 2 + mDecorationSize + mSingleLetterHeight;
+            } else {
+                mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2 + mSingleLetterHeight;
+                mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mSingleLetterHeight * 2;
+            }
 
             mChildInDays = new ArrayList<>();
             for (int i = 0; i < DAYS_IN_GRID; i++) {
@@ -116,7 +122,7 @@ public class CalendarView extends ViewGroup {
 
         setDate(11, 2015);
         Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(Calendar.DATE, 22);
+        selectedDate.set(Calendar.DATE, 1);
         setSelectedDate(selectedDate);
         setupWeekDays();
 
@@ -136,29 +142,6 @@ public class CalendarView extends ViewGroup {
     public void addViewToDayInMonth(int dayInMonth, View viewToAppend) {
         if (dayInMonth > mLastDayOfMonth) return;
         addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        float topOffset = mBetweenSiblingsPadding + mSingleLetterHeight;
-        for (int i = 0; i < DAYS_IN_GRID; i++) {
-            ArrayList<View> childArrayForDay = mChildInDays.get(i);
-            for (int j = 0; j < childArrayForDay.size(); j++) {
-                View viewToPlace = childArrayForDay.get(j);
-                if (viewToPlace.getVisibility() != GONE) {
-                    if (i >= 7) {
-                        topOffset = 0;
-                    }
-                    int left = (int) mDayCells[i].left;
-                    int top = (int) (mDayCells[i].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset);
-                    viewToPlace.layout(
-                            left,
-                            top,
-                            left + viewToPlace.getMeasuredWidth(),
-                            top + viewToPlace.getMeasuredHeight());
-                }
-            }
-        }
     }
 
     public void setSelectedDate(Calendar date) {
@@ -213,9 +196,6 @@ public class CalendarView extends ViewGroup {
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mBounds = new RectF(0, 0, w - getPaddingLeft() - getPaddingRight(),
-                h - getPaddingBottom() - getPaddingTop());
-
         int firstRowExtraHeight = (int) (mSingleLetterHeight + mBetweenSiblingsPadding);
 
         int COLS = 7;
@@ -238,8 +218,6 @@ public class CalendarView extends ViewGroup {
             }
         }
     }
-
-    RectF mBounds;
 
     @Override
     protected int getSuggestedMinimumWidth() {
@@ -266,23 +244,52 @@ public class CalendarView extends ViewGroup {
         // Measure child layouts if we have
         if (mDayCells.length == 0 || mDayCells[0] == null) return;
 
-        float topOffset = mBetweenSiblingsPadding + mSingleLetterHeight;
+        float alreadyUsedTop = mEndOfHeaderWithWeekday;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
+            if (i >= DAYS_IN_WEEK) {
+                alreadyUsedTop = mEndOfHeaderWithoutWeekday;
+            }
+
             ArrayList<View> childArrayForDay = mChildInDays.get(i);
             for (int j = 0; j < childArrayForDay.size(); j++) {
                 View viewToPlace = childArrayForDay.get(j);
                 if (viewToPlace.getVisibility() != GONE) {
-                    if (i >= DAYS_IN_WEEK) {
-                        topOffset = 0;
-                    }
-                    int left = (int) mDayCells[i].left;
-                    int top = (int) (mDayCells[i].top + mBetweenSiblingsPadding * 3 + mSingleLetterHeight + topOffset);
-                    int right = (int) mDayCells[i].right;
-                    int bottom = (int) mDayCells[i].bottom;
 
-                    int wSpec = MeasureSpec.makeMeasureSpec(Math.round(right - left), MeasureSpec.AT_MOST);
-                    int hSpec = MeasureSpec.makeMeasureSpec(Math.round(bottom - top), MeasureSpec.AT_MOST);
+                    int wSpec = MeasureSpec.makeMeasureSpec(Math.round(mDayCells[i].width()), MeasureSpec.EXACTLY);
+                    int hSpec = MeasureSpec.makeMeasureSpec(Math.round(mDayCells[i].height() - alreadyUsedTop), MeasureSpec.AT_MOST);
+
+                    Log.d("CalendarView", "onMeasureRW: " + MeasureSpec.toString(wSpec));
+                    Log.d("CalendarView", "onMeasureRH: " + MeasureSpec.toString(hSpec));
+
                     viewToPlace.measure(wSpec, hSpec);
+
+                    Log.d("CalendarView", "onMeasureAW1: " + Integer.toString(viewToPlace.getMeasuredWidth()));
+                    Log.d("CalendarView", "onMeasureAH1: " + Integer.toString(viewToPlace.getMeasuredHeight()));
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        float topOffset = mEndOfHeaderWithWeekday;
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            ArrayList<View> childArrayForDay = mChildInDays.get(i);
+            if (i >= 7) {
+                topOffset = mEndOfHeaderWithoutWeekday;
+            }
+            for (int j = 0; j < childArrayForDay.size(); j++) {
+                View viewToPlace = childArrayForDay.get(j);
+                if (viewToPlace.getVisibility() != GONE) {
+                    viewToPlace.layout(
+                            (int) mDayCells[i].left,
+                            (int) (mDayCells[i].top + topOffset),
+                            (int) mDayCells[i].right,
+                            (int) (mDayCells[i].top + topOffset + viewToPlace.getMeasuredHeight())
+                    );
+
+                    Log.d("CalendarView", "onMeasureWH: " + Integer.toString(viewToPlace.getMeasuredHeight()));
+                    Log.d("CalendarView", "onMeasureAH2: " + Integer.toString(viewToPlace.getMeasuredHeight()));
                 }
             }
         }
@@ -306,15 +313,16 @@ public class CalendarView extends ViewGroup {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
 
-                    float topOffset = 0;
+                    float topOffset = mBetweenSiblingsPadding;
                     if (i < 7) {
                         topOffset += mBetweenSiblingsPadding + mSingleLetterHeight;
                     }
 
-                    mSelectedDayDrawable.setBounds((int)(mDayCells[i].left + mDecorationLeftExtra),
-                            (int)(mDayCells[i].top + mDecorationTopExtra + topOffset),
-                            (int)(mDayCells[i].left + mDecorationLeftExtra + mDecorationSize),
-                            (int)(mDayCells[i].top + mDecorationTopExtra + mDecorationSize + topOffset));
+                    mSelectedDayDrawable.setBounds(
+                            (int) (mDayCells[i].left + mBetweenSiblingsPadding),
+                            (int) (mDayCells[i].top + topOffset),
+                            (int) (mDayCells[i].left + mBetweenSiblingsPadding + mDecorationSize),
+                            (int) (mDayCells[i].top + mDecorationSize + topOffset));
                     mSelectedDayDrawable.draw(canvas);
 
                     drawDayTextsInCell(canvas, i, mCurrentDayTextColor, mActiveTextColor);
@@ -345,7 +353,7 @@ public class CalendarView extends ViewGroup {
             }
 
             canvas.drawText(mWeekDays[cellNumber],
-                    mDayCells[cellNumber].left + mDecorationLeftExtra + decorationLeftOffset,
+                    mDayCells[cellNumber].left + mBetweenSiblingsPadding + decorationLeftOffset,
                     mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height(),
                     mCurrentWeekDayTextColor);
             topOffset = mBetweenSiblingsPadding + mReusableTextBound.height();
@@ -360,7 +368,7 @@ public class CalendarView extends ViewGroup {
         }
 
         canvas.drawText(mDayNumbers[cellNumber],
-                mDayCells[cellNumber].left + mDecorationLeftExtra + decorationLeftOffset,
+                mDayCells[cellNumber].left + mBetweenSiblingsPadding + decorationLeftOffset,
                 mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height() + decorationTopOffset + topOffset,
                 mCurrentDayTextColor);
     }
