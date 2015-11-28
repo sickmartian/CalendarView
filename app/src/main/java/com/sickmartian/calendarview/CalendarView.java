@@ -9,8 +9,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -22,7 +25,8 @@ import java.util.TimeZone;
 /**
  * Created by ***REMOVED*** on 11/24/2015.
  */
-public class CalendarView extends ViewGroup {
+public class CalendarView extends ViewGroup
+        implements GestureDetector.OnGestureListener {
 
     private static final int INITIAL = -1;
     final Paint mActiveTextColor;
@@ -63,6 +67,13 @@ public class CalendarView extends ViewGroup {
 
     static final int DAYS_IN_GRID = 42;
     static final int DAYS_IN_WEEK = 7;
+
+    GestureDetectorCompat mDetector;
+    DaySelectionListener mDaySelectionListener;
+    public interface DaySelectionListener {
+        void onTapEnded(CalendarView calendarView, int day);
+        void onLongClick(CalendarView calendarView, int day);
+    }
 
     public CalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -127,6 +138,9 @@ public class CalendarView extends ViewGroup {
             mOverflowPaint.setColor(a.getColor(R.styleable.CalendarView_overflowColor, Color.GREEN));
             mOverflowHeight = a.getDimension(R.styleable.CalendarView_overflowHeight,
                     getResources().getDimension(R.dimen.calendar_view_default_overflow_height));
+
+            mDetector = new GestureDetectorCompat(context, this);
+            mDetector.setIsLongpressEnabled(true);
         } finally {
             a.recycle();
         }
@@ -241,7 +255,7 @@ public class CalendarView extends ViewGroup {
                         * 2 // For chars in days of the month
                         * DAYS_IN_WEEK),
                 widthMeasureSpec, 0);
-        int h = resolveSizeAndState((int) (( mBetweenSiblingsPadding * 4 + mSingleLetterHeight ) * DAYS_IN_WEEK), heightMeasureSpec, 0);
+        int h = resolveSizeAndState((int) ((mBetweenSiblingsPadding * 4 + mSingleLetterHeight) * DAYS_IN_WEEK), heightMeasureSpec, 0);
 
         setMeasuredDimension(w, h);
 
@@ -394,6 +408,73 @@ public class CalendarView extends ViewGroup {
                 mDayCells[cellNumber].left + mBetweenSiblingsPadding + decorationLeftOffset,
                 mDayCells[cellNumber].top + mBetweenSiblingsPadding + mReusableTextBound.height() + decorationTopOffset + topOffset,
                 mCurrentDayTextColor);
+    }
+
+    // Interaction
+    public void setDaySelectedListener(DaySelectionListener listener) {
+        this.mDaySelectionListener = listener;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return mDetector.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return true;
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return true;
+    }
+
+    public int getCellFromLocation(float x, float y) {
+        for (int i = 0; i < mDayCells.length; i++) {
+            if (mDayCells[i].contains(x, y)) {
+                if (i >= mFirstCellOfMonth &&
+                        i <= mFirstCellOfMonth + mLastDayOfMonth - 1) {
+                    return i - mFirstCellOfMonth + 1;
+                } else {
+                    return INITIAL;
+                }
+            }
+        }
+        return INITIAL;
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        if (mDaySelectionListener != null) {
+            int currentDay = getCellFromLocation(e.getX(), e.getY());
+            mDaySelectionListener.onTapEnded(this, currentDay);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+        if (mDaySelectionListener != null) {
+            int currentDay = getCellFromLocation(e.getX(), e.getY());
+            mDaySelectionListener.onLongClick(this, currentDay);
+        }
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        return false;
     }
 
     // Utils for calendar
