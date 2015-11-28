@@ -42,7 +42,7 @@ public class CalendarView extends ViewGroup {
     int mFirstCellOfMonth = INITIAL;
     private int mYear;
     private int mMonth;
-    private int mSelectedDay;
+    private int mCurrentDay;
     private Rect mReusableTextBound = new Rect();
     private Paint mCurrentDayTextColor;
     private String[] mWeekDays;
@@ -132,14 +132,16 @@ public class CalendarView extends ViewGroup {
         }
 
         setDate(11, 2015);
-        Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(Calendar.DATE, 1);
-        setSelectedDate(selectedDate);
+        Calendar currentDay = Calendar.getInstance();
+        currentDay.set(Calendar.DATE, 1);
+        setCurrentDay(currentDay);
         setupWeekDays();
 
+        // Draw itself
         setWillNotDraw(false);
     }
 
+    // Convenience methods
     public void addViewToCell(int cellNumber, View viewToAppend) {
         addView(viewToAppend);
 
@@ -155,15 +157,15 @@ public class CalendarView extends ViewGroup {
         addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
     }
 
-    public void setSelectedDate(Calendar date) {
+    public void setCurrentDay(Calendar date) {
         // Only mark as selected if it is this month
         if (date.get(Calendar.YEAR) == mYear &&
                 date.get(Calendar.MONTH) == mMonth) {
-            mSelectedDay = date.get(Calendar.DATE);
+            mCurrentDay = date.get(Calendar.DATE);
             invalidate();
-        } else if (mSelectedDay != INITIAL) {
+        } else if (mCurrentDay != INITIAL) {
             // Only invalidate previous layout if we had a selected day before
-            mSelectedDay = INITIAL;
+            mCurrentDay = INITIAL;
             invalidate();
         }
     }
@@ -205,6 +207,7 @@ public class CalendarView extends ViewGroup {
         invalidate();
     }
 
+    // View methods
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         int firstRowExtraHeight = (int) (mSingleLetterHeight + mBetweenSiblingsPadding);
@@ -228,16 +231,6 @@ public class CalendarView extends ViewGroup {
                 }
             }
         }
-    }
-
-    @Override
-    protected int getSuggestedMinimumWidth() {
-        return (int) mTextSize;
-    }
-
-    @Override
-    protected int getSuggestedMinimumHeight() {
-        return (int) mTextSize;
     }
 
     @Override
@@ -332,7 +325,7 @@ public class CalendarView extends ViewGroup {
             // Cell in month
             if (i >= mFirstCellOfMonth && i <= lastCellOfMonth) {
                 int day =  i - mFirstCellOfMonth + 1;
-                if (mSelectedDay == day && mSelectedDayDrawable != null) {
+                if (mCurrentDay == day && mSelectedDayDrawable != null) {
 
                     // Decoration
                     float topOffset = mBetweenSiblingsPadding;
@@ -403,6 +396,7 @@ public class CalendarView extends ViewGroup {
                 mCurrentDayTextColor);
     }
 
+    // Utils for calendar
     public static Calendar getUTCCalendar() {
         return Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     }
