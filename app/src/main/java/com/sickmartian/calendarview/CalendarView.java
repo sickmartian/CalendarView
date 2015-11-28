@@ -151,10 +151,6 @@ public class CalendarView extends ViewGroup
             a.recycle();
         }
 
-        setDate(11, 2015);
-        Calendar currentDay = Calendar.getInstance();
-        currentDay.set(Calendar.DATE, 1);
-        setCurrentDay(currentDay);
         setupWeekDays();
 
         // Draw itself
@@ -414,6 +410,9 @@ public class CalendarView extends ViewGroup
         }
 
         // Day number
+        // Check we have something to draw first.
+        if (mDayNumbers == null || mDayNumbers.length == 0 || mDayNumbers[0] == null) return;
+
         mCurrentDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
         int decorationLeftOffset = 0;
         int decorationTopOffset = 0;

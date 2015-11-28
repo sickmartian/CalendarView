@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#44FF4081</color>
+    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorPrimaryLight">#BBDEFB</color>
+    <color name="colorAccent">#CDDC39</color>
+
+    <color name="colorPrimaryText">#212121</color>
+    <color name="colorSecondaryText">#727272</color>
+    <color name="colorInvertedText">#FFFFFF</color>
+    <color name="colorBackground">#E4E4E4</color>
+
+    <color name="colorCalendarDayBackground">#FFFFFF</color>
+    <color name="colorCalendarDivider">#E7E7E7</color>
+    <color name="currentDayBackground">#F0F4C3</color>
+    <color name="selectedDayBackground">@color/colorPrimaryLight</color>
+    <color name="notThisMonthDayBackground">#F2F2F2</color>
+
+    <color name="icon_with_off_color">#727272</color>
+    <color name="habit_done">#81D4FA</color>
+    <color name="habit_skipped">#0277BD</color>
+    <color name="habit_unknown">#AAAAAA</color>
+
+    <color name="iconSelectionNormalBackground">#FFFFFF</color>
+    <color name="iconSelectionSelectedBackground">#E4E4E4</color>
+
+    <color name="preference_fallback_accent_color">@color/colorAccent</color>
+    <color name="new_event_animation_start_color">@color/colorPrimaryLight</color>
+    <color name="new_event_animation_end_color">@android:color/white</color>
+
+    <color name="chart_marker_background">#88727272</color>
+
+    <color name="dangerous_action">#FF5555</color>
+    <color name="add_widget_icon_tint">#72727272</color>
+    <color name="tab_background_color">#AAAAAA</color>
+    <color name="fab_tutorial_target_color">#9ACB28</color>
 </resources>

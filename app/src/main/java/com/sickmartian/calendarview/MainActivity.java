@@ -5,10 +5,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
+
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +24,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mCalendarView = (CalendarView) findViewById(R.id.calendar_view);
+        mCalendarView.setDate(11, 2015);
+        Calendar currentDay = Calendar.getInstance();
+        currentDay.set(Calendar.DATE, 28);
+        mCalendarView.setCurrentDay(currentDay);
+
         View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
         mCalendarView.addViewToDayInMonth(1, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
