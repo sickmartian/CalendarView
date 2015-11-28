@@ -149,11 +149,7 @@ public class MonthCalendarView extends ViewGroup
         }
 
         // Arrays in initial state so we can draw ourselves on the editor
-        mCellsWithOverflow = new ArrayList<>();
-        mChildInDays = new ArrayList<>();
-        for (int i = 0; i < DAYS_IN_GRID; i++) {
-            mChildInDays.add(i, new ArrayList<View>());
-        }
+        initializeChildState();
 
         // Calculate a bunch of no-data dependent dimensions
         mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
@@ -174,6 +170,16 @@ public class MonthCalendarView extends ViewGroup
         setWillNotDraw(false);
 
         setupWeekDays();
+    }
+
+    private void initializeChildState() {
+        removeAllViews();
+
+        mCellsWithOverflow = new ArrayList<>();
+        mChildInDays = new ArrayList<>();
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            mChildInDays.add(i, new ArrayList<View>());
+        }
     }
 
     private void setupInteraction(Context context) {
@@ -222,19 +228,23 @@ public class MonthCalendarView extends ViewGroup
         }
     }
 
-    public void setDate(int month, int year) {
+    private void setDateInternal(int month, int year) {
         mYear = year;
-        mMonth = month - 1;
+        mMonth = month;
 
+        sharedSetDate();
+    }
+
+    private void sharedSetDate() {
         // Get first day of the week
         Calendar cal = getUTCCalendar();
         makeCalendarBeginningOfDay(cal);
-        cal.set(year, mMonth, 1);
+        cal.set(mYear, mMonth, 1);
         int firstDayInWeekOfMonth = cal.get(Calendar.DAY_OF_WEEK) - 1;
 
         // Get last day of the week
         mLastDayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        cal.set(year, mMonth, mLastDayOfMonth);
+        cal.set(mYear, mMonth, mLastDayOfMonth);
         firstDayInWeekOfMonth = ( firstDayInWeekOfMonth + mFirstDayOfTheWeekShift ) % 7;
 
         cal.add(Calendar.MONTH, -1);
@@ -257,6 +267,15 @@ public class MonthCalendarView extends ViewGroup
         }
 
         invalidate();
+    }
+
+    public void setDate(int month, int year) {
+        mYear = year;
+        mMonth = month - 1;
+
+        setSelectedDay(INITIAL);
+        initializeChildState();
+        sharedSetDate();
     }
 
     public void setSelectedDay(int newSelectedDay) {
@@ -283,7 +302,7 @@ public class MonthCalendarView extends ViewGroup
 
             // Apply changes
             setupWeekDays(); // Reset weekday names
-            setDate(mMonth + 1, mYear); // Reset cells - Invalidates the view
+            setDateInternal(mMonth, mYear); // Reset cells - Invalidates the view
 
             // Save month's content (discard out of month data)
             ArrayList<ArrayList<View>> oldChilds = mChildInDays;
@@ -683,7 +702,7 @@ public class MonthCalendarView extends ViewGroup
         MyOwnState myOwnState = (MyOwnState) state;
         super.onRestoreInstanceState(myOwnState.getSuperState());
 
-        setDate(myOwnState.mMonth + 1, myOwnState.mYear);
+        setDateInternal(myOwnState.mMonth, myOwnState.mYear);
         setCurrentDay(myOwnState.mCurrentDay);
         setSelectedDay(myOwnState.mSelectedDay);
     }

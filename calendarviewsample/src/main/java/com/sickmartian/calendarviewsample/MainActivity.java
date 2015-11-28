@@ -43,29 +43,7 @@ public class MainActivity extends AppCompatActivity {
         mMonthCalendarView.setDate(mMonth, mYear);
         mMonthCalendarView.setCurrentDay(mDay);
 
-        View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(1, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(3, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(4, testView1);
-
-        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(30, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(31, testView1);
-
-        // Invalid day gets ignored
-        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(32, testView1);
-
-        addOutOfMonth();
+        inputTestData();
 
         mMonthCalendarView.setDaySelectedListener(new MonthCalendarView.DaySelectionListener() {
             @Override
@@ -89,10 +67,17 @@ public class MainActivity extends AppCompatActivity {
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                                mYear = year;
-                                mMonth = monthOfYear + 1; // Again: Base 1 months
+                                // Again: Base 1 months
+                                int proposedMonth = monthOfYear + 1;
+                                if (proposedMonth != mMonth || mYear != year) {
+                                    mYear = year;
+                                    mMonth = proposedMonth;
+                                    mMonthCalendarView.setDate(mMonth, mYear);
+                                    // If the month or year changes, you need to input the data
+                                    // again
+                                    inputTestData();
+                                }
                                 mDay = dayOfMonth;
-                                mMonthCalendarView.setDate(mMonth, mYear);
                                 mMonthCalendarView.setCurrentDay(mDay);
                             }
                         },
@@ -174,6 +159,32 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    private void inputTestData() {
+        View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mMonthCalendarView.addViewToDayInMonth(1, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mMonthCalendarView.addViewToDayInMonth(3, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mMonthCalendarView.addViewToDayInMonth(4, testView1);
+
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mMonthCalendarView.addViewToDayInMonth(30, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mMonthCalendarView.addViewToDayInMonth(31, testView1);
+
+        // Invalid day gets ignored
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mMonthCalendarView.addViewToDayInMonth(32, testView1);
+
+        addOutOfMonth();
     }
 
     private void addOutOfMonth() {
