@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.sickmartian.calendarview.MonthCalendarView;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
@@ -34,9 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
         Calendar cal = Calendar.getInstance();
         mYear = cal.get(Calendar.YEAR);
-        // IMPORTANT: We use base 1 months. And you should really use Joda Time
+        // IMPORTANT: We use base 1 months. And you should really use Joda Time.
         mMonth = 10;//cal.get(Calendar.MONTH) + 1;
-        mDay = cal.get(Calendar.DATE);
+        mDay = 15;//cal.get(Calendar.DATE);
 
         mMonthCalendarView = (MonthCalendarView) findViewById(R.id.calendar_view);
         mMonthCalendarView.setDate(mMonth, mYear);
@@ -120,6 +121,48 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.SATURDAY_SHIFT);
+            }
+        });
+
+        Button addView1 = (Button) findViewById(R.id.add_content1);
+        addView1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View testView = getLayoutInflater().inflate(R.layout.test_view1, null);
+                mMonthCalendarView.addViewToDayInMonth(mMonthCalendarView.getSelectedDay(),
+                        testView);
+            }
+        });
+
+        Button addView2 = (Button) findViewById(R.id.add_content2);
+        addView2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View testView = getLayoutInflater().inflate(R.layout.test_view2, null);
+                mMonthCalendarView.addViewToDayInMonth(mMonthCalendarView.getSelectedDay(),
+                        testView);
+            }
+        });
+
+        Button delFirst = (Button) findViewById(R.id.remove_first);
+        delFirst.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<View> content = mMonthCalendarView.getDayContent(mMonthCalendarView.getSelectedDay());
+                if (!(content.size() > 0)) return;
+                content.remove(0);
+                mMonthCalendarView.setDayContent(mMonthCalendarView.getSelectedDay(), content);
+            }
+        });
+
+        Button delLast = (Button) findViewById(R.id.remove_last);
+        delLast.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<View> content = mMonthCalendarView.getDayContent(mMonthCalendarView.getSelectedDay());
+                if (!(content.size() > 0)) return;
+                content.remove(content.size() - 1);
+                mMonthCalendarView.setDayContent(mMonthCalendarView.getSelectedDay(), content);
             }
         });
 

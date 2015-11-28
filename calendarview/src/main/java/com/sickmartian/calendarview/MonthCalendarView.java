@@ -193,13 +193,13 @@ public class MonthCalendarView extends ViewGroup
     }
 
     public void addViewToDayInMonth(int dayInMonth, View viewToAppend) {
-        if (dayInMonth > mLastDayOfMonth) return;
+        if (dayInMonth < 0 || dayInMonth > mLastDayOfMonth) return;
         addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
     }
 
     public void setCurrentDay(int dayOfThisMonth) {
         // Only mark as selected if it is this month
-        if (dayOfThisMonth < mLastDayOfMonth && dayOfThisMonth > 0) {
+        if (dayOfThisMonth <= mLastDayOfMonth && dayOfThisMonth > 0) {
             mCurrentDay = dayOfThisMonth;
             invalidate();
         } else if (mCurrentDay != INITIAL) {
@@ -260,8 +260,14 @@ public class MonthCalendarView extends ViewGroup
     }
 
     public void setSelectedDay(int newSelectedDay) {
-        mSelectedDay = newSelectedDay;
-        invalidate();
+        if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
+            mSelectedDay = newSelectedDay;
+            invalidate();
+        }
+    }
+
+    public int getSelectedDay() {
+        return mSelectedDay;
     }
 
     public int getFirstDayOfTheWeek() {
@@ -315,26 +321,44 @@ public class MonthCalendarView extends ViewGroup
         return mFirstCellOfMonth + mLastDayOfMonth;
     }
 
+    public ArrayList<View> getDayContent(int dayInMonth) {
+        if (dayInMonth <= mLastDayOfMonth && dayInMonth > 0) {
+            return getCellContent(mFirstCellOfMonth + dayInMonth - 1);
+        }
+        return null;
+    }
+
+    public void setDayContent(int dayInMonth, ArrayList<View> newContent) {
+        if (dayInMonth <= mLastDayOfMonth && dayInMonth > 0) {
+            setCellContent(mFirstCellOfMonth + dayInMonth - 1, newContent);
+        }
+    }
+
     public ArrayList<View> getCellContent(int cellNumber) {
         if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return null;
 
-        return mChildInDays.get(cellNumber);
+        return (ArrayList<View>) mChildInDays.get(cellNumber).clone();
     }
 
-    public void setCellContent(int cellNumber, ArrayList<View> content) {
+    public void setCellContent(int cellNumber, ArrayList<View> newContent) {
         if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return;
 
+        // Add new views and remove discarded views
         ArrayList<View> oldContent = mChildInDays.get(cellNumber);
-        for (View newView : content) {
+        for (View newView : newContent) {
             if (!(oldContent.contains(newView))) {
                 addView(newView);
             }
         }
         for (View oldView : oldContent) {
-            
+            if (!(newContent.contains(oldView))) {
+                removeView(oldView);
+            }
         }
 
-        mChildInDays.set(cellNumber, content);
+        // Set new content
+        mChildInDays.set(cellNumber, newContent);
+        requestLayout();
     }
 
     // View methods

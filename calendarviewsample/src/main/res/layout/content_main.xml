@@ -11,35 +11,67 @@
 
     <LinearLayout
         android:id="@+id/control_container"
+        android:orientation="vertical"
         android:layout_alignParentTop="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/set_date"
-            android:text="Set Date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <RadioGroup
+        <LinearLayout
             android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-            <RadioButton
-                android:id="@+id/start_sunday"
-                android:checked="true"
-                android:text="Sunday"
+            <Button
+                android:id="@+id/set_date"
+                android:text="Set Date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-            <RadioButton
-                android:id="@+id/start_monday"
-                android:text="Monday"
+            <RadioGroup
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <RadioButton
+                    android:id="@+id/start_sunday"
+                    android:checked="true"
+                    android:text="Sunday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <RadioButton
+                    android:id="@+id/start_monday"
+                    android:text="Monday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <RadioButton
+                    android:id="@+id/start_saturday"
+                    android:text="Saturday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </RadioGroup>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/add_content1"
+                android:text="Add V1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-            <RadioButton
-                android:id="@+id/start_saturday"
-                android:text="Saturday"
+            <Button
+                android:id="@+id/add_content2"
+                android:text="Add V2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-        </RadioGroup>
+            <Button
+                android:id="@+id/remove_first"
+                android:text="Del 1st"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/remove_last"
+                android:text="Del last"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
     </LinearLayout>
 
     <com.sickmartian.calendarview.MonthCalendarView
