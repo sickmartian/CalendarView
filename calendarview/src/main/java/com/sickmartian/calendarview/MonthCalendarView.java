@@ -683,7 +683,7 @@ public class MonthCalendarView extends ViewGroup
         MyOwnState myOwnState = (MyOwnState) state;
         super.onRestoreInstanceState(myOwnState.getSuperState());
 
-        setDate(myOwnState.mMonth, myOwnState.mYear);
+        setDate(myOwnState.mMonth + 1, myOwnState.mYear);
         setCurrentDay(myOwnState.mCurrentDay);
         setSelectedDay(myOwnState.mSelectedDay);
     }
