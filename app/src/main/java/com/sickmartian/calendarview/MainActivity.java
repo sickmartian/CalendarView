@@ -60,11 +60,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTapEnded(CalendarView calendarView, int day) {
                 Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(day), Toast.LENGTH_SHORT ).show();
+                mCalendarView.setSelectedDay(day);
             }
 
             @Override
             public void onLongClick(CalendarView calendarView, int day) {
                 Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(day), Toast.LENGTH_SHORT ).show();
+                mCalendarView.setSelectedDay(day);
             }
         });
     }

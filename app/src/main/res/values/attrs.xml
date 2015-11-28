@@ -5,21 +5,23 @@
         <attr name="textSize" format="dimension"/>
         <attr name="activeTextColor" format="color"/>
         <attr name="inactiveTextColor" format="color"/>
-        <attr name="currentDayTextColor" format="color"/>
 
-        // Backgrounds
+        // Background by states
         <attr name="activeBackgroundColor" format="color"/>
         <attr name="selectedBackgroundColor" format="color"/>
         <attr name="inactiveBackgroundColor" format="color"/>
 
-        // Decoration
+        // Current day
         <attr name="currentDayDecorationDrawable" format="reference"/>
         <attr name="currentDayDecorationSize" format="dimension"/>
+        <attr name="currentDayTextColor" format="color"/>
 
-        // More
+        // Overflow
         <attr name="showOverflow" format="boolean" />
         <attr name="overflowColor" format="color" />
         <attr name="overflowHeight" format="dimension" />
+
+        // Other
         <attr name="separatorColor" format="color"/>
     </declare-styleable>
 </resources>

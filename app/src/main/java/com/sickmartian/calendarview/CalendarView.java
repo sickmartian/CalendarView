@@ -33,7 +33,8 @@ public class CalendarView extends ViewGroup
     final Paint mSeparationPaint;
     final Paint mInactiveTextColor;
     final Paint mInactiveBackgroundColor;
-    final Drawable mSelectedDayDrawable;
+    final Paint mSelectedBackgroundColor;
+    final Drawable mCurrentDayDrawable;
     final float mDecorationSize;
     final float mBetweenSiblingsPadding;
     private final boolean mShowOverflow;
@@ -57,6 +58,7 @@ public class CalendarView extends ViewGroup
 
     private float mEndOfHeaderWithoutWeekday;
     private float mEndOfHeaderWithWeekday;
+    private int mSeletedDay = INITIAL;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -109,7 +111,11 @@ public class CalendarView extends ViewGroup
             mInactiveBackgroundColor.setStyle(Paint.Style.FILL);
             mInactiveBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_inactiveBackgroundColor, Color.GRAY));
 
-            mSelectedDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
+            mSelectedBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mSelectedBackgroundColor.setStyle(Paint.Style.FILL);
+            mSelectedBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_selectedBackgroundColor, Color.YELLOW));
+
+            mCurrentDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
 
             mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, sp4);
             mBetweenSiblingsPadding = sp4;
@@ -218,6 +224,11 @@ public class CalendarView extends ViewGroup
             mDayNumbers[i] = Integer.toString(day);
         }
 
+        invalidate();
+    }
+
+    public void setSelectedDay(int newSelectedDay) {
+        mSeletedDay = newSelectedDay;
         invalidate();
     }
 
@@ -339,19 +350,26 @@ public class CalendarView extends ViewGroup
             // Cell in month
             if (i >= mFirstCellOfMonth && i <= lastCellOfMonth) {
                 int day =  i - mFirstCellOfMonth + 1;
-                if (mCurrentDay == day && mSelectedDayDrawable != null) {
+
+                // Selected day has special background
+                if (day == mSeletedDay) {
+                    canvas.drawRect(mDayCells[i], mSelectedBackgroundColor);
+                }
+
+                // Current day might have a decoration
+                if (mCurrentDay == day && mCurrentDayDrawable != null) {
 
                     // Decoration
                     float topOffset = mBetweenSiblingsPadding;
                     if (i < 7) {
                         topOffset += mBetweenSiblingsPadding + mSingleLetterHeight;
                     }
-                    mSelectedDayDrawable.setBounds(
+                    mCurrentDayDrawable.setBounds(
                             (int) (mDayCells[i].left + mBetweenSiblingsPadding),
                             (int) (mDayCells[i].top + topOffset),
                             (int) (mDayCells[i].left + mBetweenSiblingsPadding + mDecorationSize),
                             (int) (mDayCells[i].top + mDecorationSize + topOffset));
-                    mSelectedDayDrawable.draw(canvas);
+                    mCurrentDayDrawable.draw(canvas);
 
                     drawDayTextsInCell(canvas, i, mCurrentDayTextColor, mActiveTextColor);
                 } else {
@@ -448,8 +466,10 @@ public class CalendarView extends ViewGroup
     public boolean onSingleTapUp(MotionEvent e) {
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
-            mDaySelectionListener.onTapEnded(this, currentDay);
-            return true;
+            if (currentDay != INITIAL) {
+                mDaySelectionListener.onTapEnded(this, currentDay);
+                return true;
+            }
         }
         return false;
     }
@@ -458,7 +478,9 @@ public class CalendarView extends ViewGroup
     public void onLongPress(MotionEvent e) {
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
-            mDaySelectionListener.onLongClick(this, currentDay);
+            if (currentDay != INITIAL) {
+                mDaySelectionListener.onLongClick(this, currentDay);
+            }
         }
     }
 
