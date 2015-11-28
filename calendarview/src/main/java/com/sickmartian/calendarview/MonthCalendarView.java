@@ -279,8 +279,13 @@ public class MonthCalendarView extends ViewGroup
     }
 
     public void setSelectedDay(int newSelectedDay) {
+        // Accept days in the month
         if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
             mSelectedDay = newSelectedDay;
+            invalidate();
+            // Or the initial to unset it
+        } else if (newSelectedDay == INITIAL) {
+            mSelectedDay = INITIAL;
             invalidate();
         }
     }
