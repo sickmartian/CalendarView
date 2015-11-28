@@ -18,6 +18,8 @@
 
         // More
         <attr name="showOverflow" format="boolean" />
+        <attr name="overflowColor" format="color" />
+        <attr name="overflowHeight" format="dimension" />
         <attr name="separatorColor" format="color"/>
     </declare-styleable>
 </resources>

@@ -10,7 +10,6 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +32,9 @@ public class CalendarView extends ViewGroup {
     final Drawable mSelectedDayDrawable;
     final float mDecorationSize;
     final float mBetweenSiblingsPadding;
+    private final boolean mShowOverflow;
+    private final Paint mOverflowPaint;
+    private final float mOverflowHeight;
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     String[] mDayNumbers = new String[DAYS_IN_GRID];
     float mTextSize;
@@ -47,6 +49,7 @@ public class CalendarView extends ViewGroup {
     private int mSingleLetterWidth;
     private int mSingleLetterHeight;
     ArrayList<ArrayList<View>> mChildInDays;
+    ArrayList<Integer> mCellsWithOverflow;
 
     private float mEndOfHeaderWithoutWeekday;
     private float mEndOfHeaderWithWeekday;
@@ -116,6 +119,14 @@ public class CalendarView extends ViewGroup {
             for (int i = 0; i < DAYS_IN_GRID; i++) {
                 mChildInDays.add(i, new ArrayList<View>());
             }
+
+            mCellsWithOverflow = new ArrayList<>();
+            mShowOverflow = a.getBoolean(R.styleable.CalendarView_showOverflow, true);
+            mOverflowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mOverflowPaint.setStyle(Paint.Style.FILL);
+            mOverflowPaint.setColor(a.getColor(R.styleable.CalendarView_overflowColor, Color.GREEN));
+            mOverflowHeight = a.getDimension(R.styleable.CalendarView_overflowHeight,
+                    getResources().getDimension(R.dimen.calendar_view_default_overflow_height));
         } finally {
             a.recycle();
         }
@@ -254,17 +265,9 @@ public class CalendarView extends ViewGroup {
             for (int j = 0; j < childArrayForDay.size(); j++) {
                 View viewToPlace = childArrayForDay.get(j);
                 if (viewToPlace.getVisibility() != GONE) {
-
                     int wSpec = MeasureSpec.makeMeasureSpec(Math.round(mDayCells[i].width()), MeasureSpec.EXACTLY);
                     int hSpec = MeasureSpec.makeMeasureSpec(Math.round(mDayCells[i].height() - alreadyUsedTop), MeasureSpec.AT_MOST);
-
-                    Log.d("CalendarView", "onMeasureRW: " + MeasureSpec.toString(wSpec));
-                    Log.d("CalendarView", "onMeasureRH: " + MeasureSpec.toString(hSpec));
-
                     viewToPlace.measure(wSpec, hSpec);
-
-                    Log.d("CalendarView", "onMeasureAW1: " + Integer.toString(viewToPlace.getMeasuredWidth()));
-                    Log.d("CalendarView", "onMeasureAH1: " + Integer.toString(viewToPlace.getMeasuredHeight()));
                 }
             }
         }
@@ -272,24 +275,41 @@ public class CalendarView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        float topOffset = mEndOfHeaderWithWeekday;
+        mCellsWithOverflow.clear();
+        float topOffset;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
             ArrayList<View> childArrayForDay = mChildInDays.get(i);
             if (i >= 7) {
                 topOffset = mEndOfHeaderWithoutWeekday;
+            } else {
+                topOffset = mEndOfHeaderWithWeekday;
             }
+
+            int cellBottom = (int) (mDayCells[i].bottom - mOverflowHeight);
             for (int j = 0; j < childArrayForDay.size(); j++) {
                 View viewToPlace = childArrayForDay.get(j);
                 if (viewToPlace.getVisibility() != GONE) {
+
+                    // If we overflow the cell, crop the view
+                    int proposedItemBottom = (int) (mDayCells[i].top + topOffset + viewToPlace.getMeasuredHeight());
+                    if (proposedItemBottom >= cellBottom) {
+                        proposedItemBottom = cellBottom;
+                    }
+
                     viewToPlace.layout(
                             (int) mDayCells[i].left,
                             (int) (mDayCells[i].top + topOffset),
                             (int) mDayCells[i].right,
-                            (int) (mDayCells[i].top + topOffset + viewToPlace.getMeasuredHeight())
+                            proposedItemBottom
                     );
 
-                    Log.d("CalendarView", "onMeasureWH: " + Integer.toString(viewToPlace.getMeasuredHeight()));
-                    Log.d("CalendarView", "onMeasureAH2: " + Integer.toString(viewToPlace.getMeasuredHeight()));
+                    topOffset += viewToPlace.getMeasuredHeight();
+
+                    // If we don't have more space below, stop drawing them
+                    if (proposedItemBottom == cellBottom) {
+                        mCellsWithOverflow.add(i);
+                        break;
+                    }
                 }
             }
         }
@@ -306,6 +326,7 @@ public class CalendarView extends ViewGroup {
         canvas.drawLine(0, mDayCells[28].top, getWidth(), mDayCells[28].top, mSeparationPaint);
         canvas.drawLine(0, mDayCells[35].top, getWidth(), mDayCells[35].top, mSeparationPaint);
 
+        // Weekdays and day numbers
         int lastCellOfMonth = mFirstCellOfMonth + mLastDayOfMonth - 1;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
             // Cell in month
@@ -313,11 +334,11 @@ public class CalendarView extends ViewGroup {
                 int day =  i - mFirstCellOfMonth + 1;
                 if (mSelectedDay == day && mSelectedDayDrawable != null) {
 
+                    // Decoration
                     float topOffset = mBetweenSiblingsPadding;
                     if (i < 7) {
                         topOffset += mBetweenSiblingsPadding + mSingleLetterHeight;
                     }
-
                     mSelectedDayDrawable.setBounds(
                             (int) (mDayCells[i].left + mBetweenSiblingsPadding),
                             (int) (mDayCells[i].top + topOffset),
@@ -336,6 +357,14 @@ public class CalendarView extends ViewGroup {
                 drawDayTextsInCell(canvas, i, mInactiveTextColor, mInactiveTextColor);
             }
         }
+
+        // Overflow
+        if (mShowOverflow) {
+            for (int cellWithOverflow : mCellsWithOverflow) {
+                canvas.drawRect(mDayCells[cellWithOverflow].left, mDayCells[cellWithOverflow].bottom - mOverflowHeight,
+                        mDayCells[cellWithOverflow].right, mDayCells[cellWithOverflow].bottom, mOverflowPaint);
+            }
+        }
     }
 
     private void drawDayTextsInCell(Canvas canvas,
@@ -343,7 +372,7 @@ public class CalendarView extends ViewGroup {
                                     Paint mCurrentDayTextColor,
                                     Paint mCurrentWeekDayTextColor) {
         float topOffset = 0;
-
+        // Weekday
         if (cellNumber < 7) {
             mCurrentWeekDayTextColor.getTextBounds(mWeekDays[cellNumber], 0, mWeekDays[cellNumber].length(), mReusableTextBound);
 
@@ -359,6 +388,7 @@ public class CalendarView extends ViewGroup {
             topOffset = mBetweenSiblingsPadding + mReusableTextBound.height();
         }
 
+        // Day number
         mCurrentDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
         int decorationLeftOffset = 0;
         int decorationTopOffset = 0;

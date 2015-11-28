@@ -26,6 +26,10 @@ public class MainActivity extends AppCompatActivity {
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
         mCalendarView.addViewToDayInMonth(2, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
         mCalendarView.addViewToDayInMonth(3, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
         mCalendarView.addViewToDayInMonth(4, testView1);
