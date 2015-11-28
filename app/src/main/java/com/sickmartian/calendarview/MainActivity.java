@@ -10,8 +10,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import java.util.Calendar;
-
 public class MainActivity extends AppCompatActivity {
 
     CalendarView mCalendarView;
@@ -23,52 +21,48 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (savedInstanceState == null) {
-            mCalendarView = (CalendarView) findViewById(R.id.calendar_view);
-            mCalendarView.setDate(11, 2015);
-            Calendar currentDay = Calendar.getInstance();
-            currentDay.set(Calendar.DATE, 28);
-            mCalendarView.setCurrentDay(currentDay);
+        mCalendarView = (CalendarView) findViewById(R.id.calendar_view);
+        mCalendarView.setDate(11, 2015);
+        mCalendarView.setCurrentDay(28);
 
-            View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToDayInMonth(1, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToDayInMonth(2, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mCalendarView.addViewToDayInMonth(2, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mCalendarView.addViewToDayInMonth(2, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mCalendarView.addViewToDayInMonth(3, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mCalendarView.addViewToDayInMonth(4, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToDayInMonth(30, testView1);
+        View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(1, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(2, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(3, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+        mCalendarView.addViewToDayInMonth(4, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(30, testView1);
 
-            // Invalid day
-            testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToDayInMonth(31, testView1);
+        // Invalid day
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToDayInMonth(31, testView1);
 
-            // Bounds
-            testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToCell(0, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            mCalendarView.addViewToCell(41, testView1);
+        // Bounds
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToCell(0, testView1);
+        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
+        mCalendarView.addViewToCell(41, testView1);
 
-            mCalendarView.setDaySelectedListener(new CalendarView.DaySelectionListener() {
-                @Override
-                public void onTapEnded(CalendarView calendarView, int day) {
-                    Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(day), Toast.LENGTH_SHORT).show();
-                    mCalendarView.setSelectedDay(day);
-                }
+        mCalendarView.setDaySelectedListener(new CalendarView.DaySelectionListener() {
+            @Override
+            public void onTapEnded(CalendarView calendarView, int day) {
+                Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(day), Toast.LENGTH_SHORT).show();
+                mCalendarView.setSelectedDay(day);
+            }
 
-                @Override
-                public void onLongClick(CalendarView calendarView, int day) {
-                    Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(day), Toast.LENGTH_SHORT).show();
-                    mCalendarView.setSelectedDay(day);
-                }
-            });
-        }
+            @Override
+            public void onLongClick(CalendarView calendarView, int day) {
+                Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(day), Toast.LENGTH_SHORT).show();
+                mCalendarView.setSelectedDay(day);
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {

@@ -94,7 +94,6 @@ public class CalendarView extends ViewGroup
                 R.styleable.CalendarView,
                 0, 0);
 
-        float sp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4, getResources().getDisplayMetrics());
         float dp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
         dp1 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
 
@@ -169,13 +168,17 @@ public class CalendarView extends ViewGroup
         }
 
         // Interaction
-        mDetector = new GestureDetectorCompat(context, this);
-        mDetector.setIsLongpressEnabled(true);
+        setupInteraction(context);
 
         // We will draw ourselves, even if we are a ViewGroup
         setWillNotDraw(false);
 
         setupWeekDays();
+    }
+
+    private void setupInteraction(Context context) {
+        mDetector = new GestureDetectorCompat(context, this);
+        mDetector.setIsLongpressEnabled(true);
     }
 
     // Convenience methods to interact
@@ -192,6 +195,18 @@ public class CalendarView extends ViewGroup
     public void addViewToDayInMonth(int dayInMonth, View viewToAppend) {
         if (dayInMonth > mLastDayOfMonth) return;
         addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
+    }
+
+    public void setCurrentDay(int dayOfThisMonth) {
+        // Only mark as selected if it is this month
+        if (dayOfThisMonth < mLastDayOfMonth && dayOfThisMonth > 0) {
+            mCurrentDay = dayOfThisMonth;
+            invalidate();
+        } else if (mCurrentDay != INITIAL) {
+            // Only invalidate previous layout if we had a selected day before
+            mCurrentDay = INITIAL;
+            invalidate();
+        }
     }
 
     public void setCurrentDay(Calendar date) {
@@ -569,16 +584,11 @@ public class CalendarView extends ViewGroup
         }
 
         MyOwnState myOwnState = (MyOwnState) state;
-        super.onRestoreInstanceState(((MyOwnState) state).getSuperState());
+        super.onRestoreInstanceState(myOwnState.getSuperState());
 
-        mYear = myOwnState.mYear;
-        mMonth = myOwnState.mMonth;
-        mCurrentDay = myOwnState.mCurrentDay;
-        mSelectedDay = myOwnState.mSelectedDay;
-//
-//        setDate();
-//        setCurrentDay();
-//        setSelectedDay();
+        setDate(myOwnState.mMonth, myOwnState.mYear);
+        setCurrentDay(myOwnState.mCurrentDay);
+        setSelectedDay(myOwnState.mSelectedDay);
     }
 
     private static class MyOwnState extends BaseSavedState {
