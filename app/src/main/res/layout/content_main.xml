@@ -14,7 +14,7 @@
         calendar_view:textSize="8sp"
         calendar_view:activeTextColor="@color/colorPrimaryText"
         calendar_view:inactiveTextColor="@color/colorSecondaryText"
-        calendar_view:activeBackgroundColor="@android:color/transparent"
+        calendar_view:activeBackgroundColor="@color/colorCalendarDayBackground"
         calendar_view:selectedBackgroundColor="@color/selectedDayBackground"
         calendar_view:inactiveBackgroundColor="@color/notThisMonthDayBackground"
         calendar_view:currentDayDecorationDrawable="@drawable/current_day_drawable"

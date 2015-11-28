@@ -33,6 +33,7 @@ public class CalendarView extends ViewGroup
     final Paint mSeparationPaint;
     final Paint mInactiveTextColor;
     final Paint mInactiveBackgroundColor;
+    final Paint mActiveBackgroundColor;
     final Paint mSelectedBackgroundColor;
     final Drawable mCurrentDayDrawable;
     final float mDecorationSize;
@@ -85,9 +86,11 @@ public class CalendarView extends ViewGroup
                 R.styleable.CalendarView,
                 0, 0);
 
-        try {
-            float sp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4, getResources().getDisplayMetrics());
+        float sp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4, getResources().getDisplayMetrics());
+        float dp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
 
+        try {
+            // Text
             mTextSize = a.getDimension(R.styleable.CalendarView_textSize,
                     getResources().getDimension(R.dimen.calendar_view_default_text_size));
 
@@ -103,9 +106,14 @@ public class CalendarView extends ViewGroup
             mInactiveTextColor.setColor(a.getColor(R.styleable.CalendarView_inactiveTextColor, Color.DKGRAY));
             mInactiveTextColor.setTextSize(mTextSize);
 
+            // Cell background
             mSeparationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mSeparationPaint.setStyle(Paint.Style.STROKE);
             mSeparationPaint.setColor(a.getColor(R.styleable.CalendarView_separatorColor, Color.LTGRAY));
+
+            mActiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mActiveBackgroundColor.setStyle(Paint.Style.FILL);
+            mActiveBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_activeBackgroundColor, Color.WHITE));
 
             mInactiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
             mInactiveBackgroundColor.setStyle(Paint.Style.FILL);
@@ -115,49 +123,53 @@ public class CalendarView extends ViewGroup
             mSelectedBackgroundColor.setStyle(Paint.Style.FILL);
             mSelectedBackgroundColor.setColor(a.getColor(R.styleable.CalendarView_selectedBackgroundColor, Color.YELLOW));
 
+            // Decoration
             mCurrentDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
 
             mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, sp4);
-            mBetweenSiblingsPadding = sp4;
+            mBetweenSiblingsPadding = dp4;
 
-            mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
-            mSingleLetterWidth = mReusableTextBound.width();
-            mSingleLetterHeight = mReusableTextBound.height();
-
-            if (mDecorationSize > 0) {
-                mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2+ mDecorationSize;
-                mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 2 + mDecorationSize + mSingleLetterHeight;
-            } else {
-                mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2 + mSingleLetterHeight;
-                mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mSingleLetterHeight * 2;
-            }
-
-            mChildInDays = new ArrayList<>();
-            for (int i = 0; i < DAYS_IN_GRID; i++) {
-                mChildInDays.add(i, new ArrayList<View>());
-            }
-
-            mCellsWithOverflow = new ArrayList<>();
+            // Overflow
             mShowOverflow = a.getBoolean(R.styleable.CalendarView_showOverflow, true);
             mOverflowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mOverflowPaint.setStyle(Paint.Style.FILL);
             mOverflowPaint.setColor(a.getColor(R.styleable.CalendarView_overflowColor, Color.GREEN));
             mOverflowHeight = a.getDimension(R.styleable.CalendarView_overflowHeight,
                     getResources().getDimension(R.dimen.calendar_view_default_overflow_height));
-
-            mDetector = new GestureDetectorCompat(context, this);
-            mDetector.setIsLongpressEnabled(true);
         } finally {
             a.recycle();
         }
 
-        setupWeekDays();
+        // Arrays in initial state so we can draw ourselves on the editor
+        mCellsWithOverflow = new ArrayList<>();
+        mChildInDays = new ArrayList<>();
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            mChildInDays.add(i, new ArrayList<View>());
+        }
 
-        // Draw itself
+        // Calculate a bunch of no-data dependent dimensions
+        mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
+        mSingleLetterWidth = mReusableTextBound.width();
+        mSingleLetterHeight = mReusableTextBound.height();
+        if (mDecorationSize > 0) {
+            mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2+ mDecorationSize;
+            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 2 + mDecorationSize + mSingleLetterHeight;
+        } else {
+            mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2 + mSingleLetterHeight;
+            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mSingleLetterHeight * 2;
+        }
+
+        // Interaction
+        mDetector = new GestureDetectorCompat(context, this);
+        mDetector.setIsLongpressEnabled(true);
+
+        // We will draw ourselves, even if we are a ViewGroup
         setWillNotDraw(false);
+
+        setupWeekDays();
     }
 
-    // Convenience methods
+    // Convenience methods to interact
     public void addViewToCell(int cellNumber, View viewToAppend) {
         addView(viewToAppend);
 
@@ -350,6 +362,8 @@ public class CalendarView extends ViewGroup
                 // Selected day has special background
                 if (day == mSeletedDay) {
                     canvas.drawRect(mDayCells[i], mSelectedBackgroundColor);
+                } else {
+                    canvas.drawRect(mDayCells[i], mActiveBackgroundColor);
                 }
 
                 // Current day might have a decoration
