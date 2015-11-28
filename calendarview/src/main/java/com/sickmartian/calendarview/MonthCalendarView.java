@@ -31,15 +31,15 @@ public class MonthCalendarView extends ViewGroup
         implements GestureDetector.OnGestureListener {
 
     private static final int INITIAL = -1;
-    static final int DAYS_IN_GRID = 42;
-    static final int DAYS_IN_WEEK = 7;
+    public static final int DAYS_IN_GRID = 42;
+    public static final int DAYS_IN_WEEK = 7;
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
     public static final int SUNDAY_SHIFT = 0;
     public static final int SATURDAY_SHIFT = 1;
     public static final int MONDAY_SHIFT = 6;
-    private int mFirstDayOfTheWeekShift = MONDAY_SHIFT;
+    private int mFirstDayOfTheWeekShift = SUNDAY_SHIFT;
 
     // Attributes to draw
     final Paint mActiveTextColor;
@@ -262,6 +262,79 @@ public class MonthCalendarView extends ViewGroup
     public void setSelectedDay(int newSelectedDay) {
         mSelectedDay = newSelectedDay;
         invalidate();
+    }
+
+    public int getFirstDayOfTheWeek() {
+        return mFirstDayOfTheWeekShift;
+    }
+
+    public void setFirstDayOfTheWeek(int firstDayOfTheWeekShift) {
+        if (mFirstDayOfTheWeekShift != firstDayOfTheWeekShift) {
+            mFirstDayOfTheWeekShift = firstDayOfTheWeekShift;
+
+            // Save pointer to previous data we might be able to save
+            int previousFirstCellOfMonth = mFirstCellOfMonth;
+
+            // Apply changes
+            setupWeekDays(); // Reset weekday names
+            setDate(mMonth + 1, mYear); // Reset cells - Invalidates the view
+
+            // Save month's content (discard out of month data)
+            ArrayList<ArrayList<View>> oldChilds = mChildInDays;
+            mChildInDays = new ArrayList<>();
+
+            // Remove out of bound views
+            for (int i = 0; i < DAYS_IN_GRID; i++) {
+                if (i < previousFirstCellOfMonth || i >= previousFirstCellOfMonth + mLastDayOfMonth) {
+                    for (int j = 0; j < oldChilds.get(i).size(); j++) {
+                        removeView(oldChilds.get(i).get(j));
+                    }
+                }
+            }
+
+            // Send in-month cells and add new out of bound cells
+            for (int i = 0; i < mFirstCellOfMonth; i++) {
+                mChildInDays.add(new ArrayList<View>());
+            }
+            for (int i = previousFirstCellOfMonth; i <= previousFirstCellOfMonth + mLastDayOfMonth; i++) {
+                mChildInDays.add(oldChilds.get(i));
+            }
+            for (int i = mChildInDays.size(); i < DAYS_IN_GRID; i++) {
+                mChildInDays.add(new ArrayList<View>());
+            }
+
+            requestLayout();
+        }
+    }
+
+    public int getFirstCellOfMonth() {
+        return mFirstCellOfMonth;
+    }
+
+    public int getLastCellOfMonth() {
+        return mFirstCellOfMonth + mLastDayOfMonth;
+    }
+
+    public ArrayList<View> getCellContent(int cellNumber) {
+        if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return null;
+
+        return mChildInDays.get(cellNumber);
+    }
+
+    public void setCellContent(int cellNumber, ArrayList<View> content) {
+        if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return;
+
+        ArrayList<View> oldContent = mChildInDays.get(cellNumber);
+        for (View newView : content) {
+            if (!(oldContent.contains(newView))) {
+                addView(newView);
+            }
+        }
+        for (View oldView : oldContent) {
+            
+        }
+
+        mChildInDays.set(cellNumber, content);
     }
 
     // View methods

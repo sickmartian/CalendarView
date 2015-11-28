@@ -1,5 +1,6 @@
 package com.sickmartian.calendarviewsample;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,13 +9,21 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.sickmartian.calendarview.MonthCalendarView;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
 
     MonthCalendarView mMonthCalendarView;
+    private int mYear;
+    private int mMonth;
+    private int mDay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,9 +32,15 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Calendar cal = Calendar.getInstance();
+        mYear = cal.get(Calendar.YEAR);
+        // IMPORTANT: We use base 1 months. And you should really use Joda Time
+        mMonth = 10;//cal.get(Calendar.MONTH) + 1;
+        mDay = cal.get(Calendar.DATE);
+
         mMonthCalendarView = (MonthCalendarView) findViewById(R.id.calendar_view);
-        mMonthCalendarView.setDate(11, 2015);
-        mMonthCalendarView.setCurrentDay(28);
+        mMonthCalendarView.setDate(mMonth, mYear);
+        mMonthCalendarView.setCurrentDay(mDay);
 
         View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
         mMonthCalendarView.addViewToDayInMonth(1, testView1);
@@ -39,18 +54,17 @@ public class MainActivity extends AppCompatActivity {
         mMonthCalendarView.addViewToDayInMonth(3, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
         mMonthCalendarView.addViewToDayInMonth(4, testView1);
+
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
         mMonthCalendarView.addViewToDayInMonth(30, testView1);
-
-        // Invalid day
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
         mMonthCalendarView.addViewToDayInMonth(31, testView1);
 
-        // Bounds
+        // Invalid day gets ignored
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToCell(0, testView1);
-        testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToCell(41, testView1);
+        mMonthCalendarView.addViewToDayInMonth(32, testView1);
+
+        addOutOfMonth();
 
         mMonthCalendarView.setDaySelectedListener(new MonthCalendarView.DaySelectionListener() {
             @Override
@@ -66,6 +80,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button setDate = (Button) findViewById(R.id.set_date);
+        setDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new DatePickerDialog(MainActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                mYear = year;
+                                mMonth = monthOfYear + 1; // Again: Base 1 months
+                                mDay = dayOfMonth;
+                                mMonthCalendarView.setDate(mMonth, mYear);
+                                mMonthCalendarView.setCurrentDay(mDay);
+                            }
+                        },
+                        mYear, mMonth - 1, mDay).show();
+            }
+        });
+
+        RadioButton sunday = (RadioButton) findViewById(R.id.start_sunday);
+        sunday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.SUNDAY_SHIFT);
+            }
+        });
+
+        RadioButton monday = (RadioButton) findViewById(R.id.start_monday);
+        monday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.MONDAY_SHIFT);
+            }
+        });
+
+        RadioButton saturday = (RadioButton) findViewById(R.id.start_saturday);
+        saturday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.SATURDAY_SHIFT);
+            }
+        });
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,6 +131,20 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    private void addOutOfMonth() {
+        // Out of month cells get placed, but will get discarded if the
+        // start of the week changes
+        View testView1;
+        for (int i = 0; i < mMonthCalendarView.getFirstCellOfMonth(); i++) {
+            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+            mMonthCalendarView.addViewToCell(i, testView1);
+        }
+        for (int i = mMonthCalendarView.getLastCellOfMonth(); i < MonthCalendarView.DAYS_IN_GRID; i++) {
+            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+            mMonthCalendarView.addViewToCell(i, testView1);
+        }
     }
 
     @Override
