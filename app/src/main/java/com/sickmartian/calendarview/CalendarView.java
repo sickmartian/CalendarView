@@ -8,6 +8,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
@@ -29,6 +31,17 @@ public class CalendarView extends ViewGroup
         implements GestureDetector.OnGestureListener {
 
     private static final int INITIAL = -1;
+    static final int DAYS_IN_GRID = 42;
+    static final int DAYS_IN_WEEK = 7;
+
+    @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
+    public @interface PossibleWeekShift {}
+    public static final int SUNDAY_SHIFT = 0;
+    public static final int SATURDAY_SHIFT = 1;
+    public static final int MONDAY_SHIFT = 6;
+    private int mFirstDayOfTheWeekShift = MONDAY_SHIFT;
+
+    // Attributes to draw
     final Paint mActiveTextColor;
     final Paint mSeparationPaint;
     final Paint mInactiveTextColor;
@@ -38,39 +51,34 @@ public class CalendarView extends ViewGroup
     final Drawable mCurrentDayDrawable;
     final float mDecorationSize;
     final float mBetweenSiblingsPadding;
-    private final boolean mShowOverflow;
-    private final Paint mOverflowPaint;
-    private final float mOverflowHeight;
+    final boolean mShowOverflow;
+    final Paint mOverflowPaint;
+    final float mOverflowHeight;
+    final float mTextSize;
+    final Rect mReusableTextBound = new Rect();
+    final Paint mCurrentDayTextColor;
+
+    // User set state
+    ArrayList<ArrayList<View>> mChildInDays;
+    int mCurrentDay;
+    int mSelectedDay = INITIAL;
+    int mYear;
+    int mMonth;
+
+    // Things we calculate and use to draw
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     String[] mDayNumbers = new String[DAYS_IN_GRID];
-    float mTextSize;
+    ArrayList<Integer> mCellsWithOverflow;
+    String[] mWeekDays;
     int mLastDayOfMonth;
     int mFirstCellOfMonth = INITIAL;
-    private int mYear;
-    private int mMonth;
-    private int mCurrentDay;
-    private Rect mReusableTextBound = new Rect();
-    private Paint mCurrentDayTextColor;
-    private String[] mWeekDays;
-    private int mSingleLetterWidth;
-    private int mSingleLetterHeight;
-    ArrayList<ArrayList<View>> mChildInDays;
-    ArrayList<Integer> mCellsWithOverflow;
+    float mEndOfHeaderWithoutWeekday;
+    float mEndOfHeaderWithWeekday;
+    int mSingleLetterWidth;
+    int mSingleLetterHeight;
+    float dp1;
 
-    private float mEndOfHeaderWithoutWeekday;
-    private float mEndOfHeaderWithWeekday;
-    private int mSeletedDay = INITIAL;
-
-    @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
-    public @interface PossibleWeekShift {}
-    public static final int SUNDAY_SHIFT = 0;
-    public static final int SATURDAY_SHIFT = 1;
-    public static final int MONDAY_SHIFT = 6;
-    private int mFirstDayOfTheWeekShift = MONDAY_SHIFT;
-
-    static final int DAYS_IN_GRID = 42;
-    static final int DAYS_IN_WEEK = 7;
-
+    // Interaction
     GestureDetectorCompat mDetector;
     DaySelectionListener mDaySelectionListener;
     public interface DaySelectionListener {
@@ -88,6 +96,7 @@ public class CalendarView extends ViewGroup
 
         float sp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4, getResources().getDisplayMetrics());
         float dp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+        dp1 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
 
         try {
             // Text
@@ -126,7 +135,7 @@ public class CalendarView extends ViewGroup
             // Decoration
             mCurrentDayDrawable = a.getDrawable(R.styleable.CalendarView_currentDayDecorationDrawable);
 
-            mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, sp4);
+            mDecorationSize = a.getDimension(R.styleable.CalendarView_currentDayDecorationSize, 0);
             mBetweenSiblingsPadding = dp4;
 
             // Overflow
@@ -236,7 +245,7 @@ public class CalendarView extends ViewGroup
     }
 
     public void setSelectedDay(int newSelectedDay) {
-        mSeletedDay = newSelectedDay;
+        mSelectedDay = newSelectedDay;
         invalidate();
     }
 
@@ -345,7 +354,7 @@ public class CalendarView extends ViewGroup
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // Separation lines go first
+        // Separation lines
         canvas.drawLine(0, mDayCells[7].top, getWidth(), mDayCells[7].top, mSeparationPaint);
         canvas.drawLine(0, mDayCells[14].top, getWidth(), mDayCells[14].top, mSeparationPaint);
         canvas.drawLine(0, mDayCells[21].top, getWidth(), mDayCells[21].top, mSeparationPaint);
@@ -360,10 +369,10 @@ public class CalendarView extends ViewGroup
                 int day =  i - mFirstCellOfMonth + 1;
 
                 // Selected day has special background
-                if (day == mSeletedDay) {
-                    canvas.drawRect(mDayCells[i], mSelectedBackgroundColor);
+                if (day == mSelectedDay) {
+                    drawBackgroundForCellInColor(canvas, i, mSelectedBackgroundColor);
                 } else {
-                    canvas.drawRect(mDayCells[i], mActiveBackgroundColor);
+                    drawBackgroundForCellInColor(canvas, i, mActiveBackgroundColor);
                 }
 
                 // Current day might have a decoration
@@ -388,7 +397,7 @@ public class CalendarView extends ViewGroup
 
                 // Cell not in month
             } else {
-                canvas.drawRect(mDayCells[i], mInactiveBackgroundColor);
+                drawBackgroundForCellInColor(canvas, i, mInactiveBackgroundColor);
                 drawDayTextsInCell(canvas, i, mInactiveTextColor, mInactiveTextColor);
             }
         }
@@ -400,6 +409,33 @@ public class CalendarView extends ViewGroup
                         mDayCells[cellWithOverflow].right, mDayCells[cellWithOverflow].bottom, mOverflowPaint);
             }
         }
+    }
+
+    private void drawBackgroundForCellInColor(Canvas canvas, int cellNumber, Paint backgroundColor) {
+        RectF backgroundRect;
+        if (cellNumber < 7) {
+            backgroundRect = new RectF(
+                    mDayCells[cellNumber].left,
+                    mDayCells[cellNumber].top,
+                    mDayCells[cellNumber].right,
+                    mDayCells[cellNumber].bottom - dp1
+            );
+        } else if (cellNumber > 35) {
+            backgroundRect = new RectF(
+                    mDayCells[cellNumber].left,
+                    mDayCells[cellNumber].top,
+                    mDayCells[cellNumber].right,
+                    mDayCells[cellNumber].bottom
+            );
+        } else {
+            backgroundRect = new RectF(
+                    mDayCells[cellNumber].left,
+                    mDayCells[cellNumber].top,
+                    mDayCells[cellNumber].right,
+                    mDayCells[cellNumber].bottom - dp1
+            );
+        }
+        canvas.drawRect(backgroundRect, backgroundColor);
     }
 
     private void drawDayTextsInCell(Canvas canvas,
@@ -510,6 +546,77 @@ public class CalendarView extends ViewGroup
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         return false;
+    }
+
+    // Persistence
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        MyOwnState myOwnState = new MyOwnState(superState);
+        myOwnState.mYear = mYear;
+        myOwnState.mMonth = mMonth;
+        myOwnState.mCurrentDay = mCurrentDay;
+        myOwnState.mSelectedDay = mSelectedDay;
+
+        return myOwnState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof MyOwnState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        MyOwnState myOwnState = (MyOwnState) state;
+        super.onRestoreInstanceState(((MyOwnState) state).getSuperState());
+
+        mYear = myOwnState.mYear;
+        mMonth = myOwnState.mMonth;
+        mCurrentDay = myOwnState.mCurrentDay;
+        mSelectedDay = myOwnState.mSelectedDay;
+//
+//        setDate();
+//        setCurrentDay();
+//        setSelectedDay();
+    }
+
+    private static class MyOwnState extends BaseSavedState {
+        int mCurrentDay;
+        int mSelectedDay;
+        int mYear;
+        int mMonth;
+
+        public MyOwnState(Parcelable superState) {
+            super(superState);
+        }
+
+        public MyOwnState(Parcel in) {
+            super(in);
+            mYear = in.readInt();
+            mMonth = in.readInt();
+            mCurrentDay = in.readInt();
+            mSelectedDay = in.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(mYear);
+            out.writeInt(mMonth);
+            out.writeInt(mCurrentDay);
+            out.writeInt(mSelectedDay);
+        }
+
+        public static final Parcelable.Creator<MyOwnState> CREATOR =
+            new Parcelable.Creator<MyOwnState>() {
+                public MyOwnState createFromParcel(Parcel in) {
+                    return new MyOwnState(in);
+                }
+                public MyOwnState[] newArray(int size) {
+                    return new MyOwnState[size];
+                }
+            };
     }
 
     // Utils for calendar
