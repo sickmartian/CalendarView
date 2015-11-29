@@ -149,7 +149,7 @@ public class MonthCalendarView extends ViewGroup
         }
 
         // Arrays in initial state so we can draw ourselves on the editor
-        initializeChildState();
+        removeAllContent();
 
         // Calculate a bunch of no-data dependent dimensions
         mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
@@ -172,7 +172,7 @@ public class MonthCalendarView extends ViewGroup
         setupWeekDays();
     }
 
-    private void initializeChildState() {
+    public void removeAllContent() {
         removeAllViews();
 
         mCellsWithOverflow = new ArrayList<>();
@@ -274,7 +274,7 @@ public class MonthCalendarView extends ViewGroup
         mMonth = month - 1;
 
         setSelectedDay(INITIAL);
-        initializeChildState();
+        removeAllContent();
         sharedSetDate();
     }
 
@@ -336,6 +336,8 @@ public class MonthCalendarView extends ViewGroup
             requestLayout();
         }
     }
+
+
 
     public int getFirstCellOfMonth() {
         return mFirstCellOfMonth;
