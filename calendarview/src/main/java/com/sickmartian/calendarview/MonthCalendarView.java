@@ -403,8 +403,8 @@ public class MonthCalendarView extends ViewGroup
 
         int COLS = 7;
         int ROWS = 6;
-        float widthStep = w / COLS;
-        float heightStep = ( h - firstRowExtraHeight ) / ROWS;
+        float widthStep = w / (float) COLS;
+        float heightStep = ( h - firstRowExtraHeight ) / (float) ROWS;
         for (int col = 0; col < COLS; col++) {
             int lastBottom = INITIAL;
             for (int row = 0; row < ROWS; row++) {
