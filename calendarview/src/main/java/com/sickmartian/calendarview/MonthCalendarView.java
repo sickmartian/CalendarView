@@ -51,7 +51,7 @@ public class MonthCalendarView extends ViewGroup
     final Drawable mCurrentDayDrawable;
     final float mDecorationSize;
     final float mBetweenSiblingsPadding;
-    final boolean mShowOverflow;
+    boolean mShowOverflow;
     final Paint mOverflowPaint;
     final float mOverflowHeight;
     final float mTextSize;
@@ -337,7 +337,16 @@ public class MonthCalendarView extends ViewGroup
         }
     }
 
+    public boolean isOverflowShown() {
+        return mShowOverflow;
+    }
 
+    public void setShowOverflow(boolean showOverflow) {
+        if (showOverflow != mShowOverflow) {
+            mShowOverflow = showOverflow;
+            invalidate();
+        }
+    }
 
     public int getFirstCellOfMonth() {
         return mFirstCellOfMonth;
