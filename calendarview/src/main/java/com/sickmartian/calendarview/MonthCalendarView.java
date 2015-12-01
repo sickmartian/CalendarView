@@ -205,26 +205,54 @@ public class MonthCalendarView extends ViewGroup
     }
 
     public void setCurrentDay(int dayOfThisMonth) {
-        // Only mark as selected if it is this month
+        // Only mark as current if it is this month
         if (dayOfThisMonth <= mLastDayOfMonth && dayOfThisMonth > 0) {
             mCurrentDay = dayOfThisMonth;
             invalidate();
         } else if (mCurrentDay != INITIAL) {
-            // Only invalidate previous layout if we had a selected day before
+            // Only invalidate previous layout if we had a current day before
             mCurrentDay = INITIAL;
             invalidate();
         }
     }
 
     public void setCurrentDay(Calendar date) {
-        // Only mark as selected if it is this month
-        if (date.get(Calendar.YEAR) == mYear &&
+        // Only mark as current if it is this month
+        if (date != null &&
+                date.get(Calendar.YEAR) == mYear &&
                 date.get(Calendar.MONTH) == mMonth) {
             mCurrentDay = date.get(Calendar.DATE);
             invalidate();
-        } else if (mCurrentDay != INITIAL) {
-            // Only invalidate previous layout if we had a selected day before
+        } else if (date == null || mCurrentDay != INITIAL) {
+            // Only invalidate previous layout if we had a current day before
             mCurrentDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setSelectedDay(int newSelectedDay) {
+        // Accept days in the month
+        if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
+            mSelectedDay = newSelectedDay;
+            invalidate();
+            // Or the initial to unset it
+        } else if (newSelectedDay == INITIAL) {
+            mSelectedDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setSelectedDay(Calendar date) {
+        // Only mark as selected if it is this month
+        if (date != null &&
+                date.get(Calendar.YEAR) == mYear &&
+                date.get(Calendar.MONTH) == mMonth) {
+            mSelectedDay = date.get(Calendar.DATE);
+            invalidate();
+        } else if (date == null || mSelectedDay != INITIAL) {
+            //Unset if null or not of this month and we
+            // have one selected
+            mSelectedDay = INITIAL;
             invalidate();
         }
     }
@@ -277,18 +305,6 @@ public class MonthCalendarView extends ViewGroup
         setSelectedDay(INITIAL);
         removeAllContent();
         sharedSetDate();
-    }
-
-    public void setSelectedDay(int newSelectedDay) {
-        // Accept days in the month
-        if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
-            mSelectedDay = newSelectedDay;
-            invalidate();
-            // Or the initial to unset it
-        } else if (newSelectedDay == INITIAL) {
-            mSelectedDay = INITIAL;
-            invalidate();
-        }
     }
 
     public int getSelectedDay() {
