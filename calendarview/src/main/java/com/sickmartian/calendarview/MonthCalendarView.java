@@ -158,7 +158,7 @@ public class MonthCalendarView extends ViewGroup
         mSingleLetterHeight = mReusableTextBound.height();
         if (mDecorationSize > 0) {
             mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2+ mDecorationSize;
-            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 2 + mDecorationSize + mSingleLetterHeight;
+            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mDecorationSize + mSingleLetterHeight;
         } else {
             mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2 + mSingleLetterHeight;
             mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mSingleLetterHeight * 2;
