@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -406,14 +407,14 @@ public class MonthCalendarView extends ViewGroup
         float widthStep = w / (float) COLS;
         float heightStep = ( h - firstRowExtraHeight ) / (float) ROWS;
         for (int col = 0; col < COLS; col++) {
-            int lastBottom = INITIAL;
+            float lastBottom = INITIAL;
             for (int row = 0; row < ROWS; row++) {
                 if (row == 0) {
-                    lastBottom = (int) (heightStep * (row + 1) + firstRowExtraHeight);
+                    lastBottom = (heightStep + firstRowExtraHeight);
                     mDayCells[row * COLS  + col] = new RectF(widthStep * col, heightStep * row,
                             widthStep * (col + 1), lastBottom);
                 } else {
-                    int newBottom = (int) (lastBottom + heightStep);
+                    float newBottom = (lastBottom + heightStep);
                     mDayCells[row * COLS  + col] = new RectF(widthStep * col, lastBottom,
                             widthStep * (col + 1), newBottom);
                     lastBottom = newBottom;
@@ -501,12 +502,7 @@ public class MonthCalendarView extends ViewGroup
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // Separation lines
-        canvas.drawLine(0, mDayCells[7].top, getWidth(), mDayCells[7].top, mSeparationPaint);
-        canvas.drawLine(0, mDayCells[14].top, getWidth(), mDayCells[14].top, mSeparationPaint);
-        canvas.drawLine(0, mDayCells[21].top, getWidth(), mDayCells[21].top, mSeparationPaint);
-        canvas.drawLine(0, mDayCells[28].top, getWidth(), mDayCells[28].top, mSeparationPaint);
-        canvas.drawLine(0, mDayCells[35].top, getWidth(), mDayCells[35].top, mSeparationPaint);
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         // Weekdays and day numbers
         int lastCellOfMonth = mFirstCellOfMonth + mLastDayOfMonth - 1;
@@ -556,32 +552,22 @@ public class MonthCalendarView extends ViewGroup
                         mDayCells[cellWithOverflow].right, mDayCells[cellWithOverflow].bottom, mOverflowPaint);
             }
         }
+
+        // Separation lines
+        canvas.drawLine(0, mDayCells[7].top, getWidth(), mDayCells[7].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[14].top, getWidth(), mDayCells[14].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[21].top, getWidth(), mDayCells[21].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[28].top, getWidth(), mDayCells[28].top, mSeparationPaint);
+        canvas.drawLine(0, mDayCells[35].top, getWidth(), mDayCells[35].top, mSeparationPaint);
     }
 
     private void drawBackgroundForCellInColor(Canvas canvas, int cellNumber, Paint backgroundColor) {
-        RectF backgroundRect;
-        if (cellNumber < 7) {
-            backgroundRect = new RectF(
-                    mDayCells[cellNumber].left,
-                    mDayCells[cellNumber].top,
-                    mDayCells[cellNumber].right,
-                    mDayCells[cellNumber].bottom - dp1
-            );
-        } else if (cellNumber > 35) {
-            backgroundRect = new RectF(
-                    mDayCells[cellNumber].left,
-                    mDayCells[cellNumber].top,
-                    mDayCells[cellNumber].right,
-                    mDayCells[cellNumber].bottom
-            );
-        } else {
-            backgroundRect = new RectF(
-                    mDayCells[cellNumber].left,
-                    mDayCells[cellNumber].top,
-                    mDayCells[cellNumber].right,
-                    mDayCells[cellNumber].bottom - dp1
-            );
-        }
+        RectF backgroundRect = new RectF(
+                mDayCells[cellNumber].left,
+                mDayCells[cellNumber].top,
+                mDayCells[cellNumber].right,
+                mDayCells[cellNumber].bottom
+        );
         canvas.drawRect(backgroundRect, backgroundColor);
     }
 
