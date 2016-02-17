@@ -34,6 +34,9 @@ public class MonthCalendarView extends ViewGroup
     private static final int INITIAL = -1;
     public static final int DAYS_IN_GRID = 42;
     public static final int DAYS_IN_WEEK = 7;
+    private static final String SINGLE_DIGIT_DAY_WIDTH_TEMPLATE = "7";
+    private static final String DOUBLE_DIGIT_DAY_WIDTH_TEMPLATE = "30";
+    private static final String SPECIAL_DAY_THAT_NEEDS_WORKAROUND = "31";
 
     @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
     public @interface PossibleWeekShift {}
@@ -612,7 +615,18 @@ public class MonthCalendarView extends ViewGroup
         // Check we have something to draw first.
         if (mDayNumbers == null || mDayNumbers.length == 0 || mDayNumbers[0] == null) return;
 
-        mCurrentDayTextColor.getTextBounds(mDayNumbers[cellNumber], 0, mDayNumbers[cellNumber].length(), mReusableTextBound);
+        // So the days align between each other inside the decoration, we use
+        // the same number to calculate the length of the text inside the decoration
+        String templateDayText;
+        if (mDayNumbers[cellNumber].length() < 2) {
+            templateDayText = SINGLE_DIGIT_DAY_WIDTH_TEMPLATE;
+        } else if (mDayNumbers[cellNumber].equals(SPECIAL_DAY_THAT_NEEDS_WORKAROUND)) {
+            templateDayText = mDayNumbers[cellNumber];
+        } else {
+            templateDayText = DOUBLE_DIGIT_DAY_WIDTH_TEMPLATE;
+        }
+        mCurrentDayTextColor.getTextBounds(templateDayText, 0, templateDayText.length(), mReusableTextBound);
+
         int decorationLeftOffset = 0;
         int decorationTopOffset = 0;
         if (mDecorationSize > 0) {
