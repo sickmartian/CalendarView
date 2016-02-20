@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.sickmartian.calendarviewsample.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <LinearLayout
+        android:id="@+id/control_container"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/set_date"
+                android:text="Set Date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioGroup
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <RadioButton
+                    android:id="@+id/start_sunday"
+                    android:checked="true"
+                    android:text="Sunday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <RadioButton
+                    android:id="@+id/start_monday"
+                    android:text="Monday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <RadioButton
+                    android:id="@+id/start_saturday"
+                    android:text="Saturday"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </RadioGroup>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/add_content1"
+                android:text="Add V1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/add_content2"
+                android:text="Add V2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/remove_first"
+                android:text="Del 1st"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/remove_last"
+                android:text="Del last"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.sickmartian.calendarview.WeekView
+        xmlns:calendar_view="http://schemas.android.com/apk/res-auto"
+        android:layout_below="@+id/control_container"
+        calendar_view:textSize="8sp"
+        calendar_view:activeTextColor="@color/colorPrimaryText"
+        calendar_view:inactiveTextColor="@color/colorSecondaryText"
+        calendar_view:activeBackgroundColor="@color/colorCalendarDayBackground"
+        calendar_view:selectedBackgroundColor="@color/selectedDayBackground"
+        calendar_view:inactiveBackgroundColor="@color/notThisMonthDayBackground"
+        calendar_view:currentDayDecorationDrawable="@drawable/current_day_drawable"
+        calendar_view:currentDayDecorationSize="16dp"
+        calendar_view:currentDayTextColor="@color/colorInvertedText"
+        calendar_view:showOverflow="true"
+        calendar_view:overflowColor="@color/colorPrimary"
+        calendar_view:overflowHeight="2dp"
+        calendar_view:separatorColor="@color/colorCalendarDivider"
+        android:id="@+id/calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</RelativeLayout>
