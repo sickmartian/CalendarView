@@ -1,6 +1,7 @@
 package com.sickmartian.calendarviewsample;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,14 +15,15 @@ import android.widget.DatePicker;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-import com.sickmartian.calendarview.MonthCalendarView;
+import com.sickmartian.calendarview.CalendarView;
+import com.sickmartian.calendarview.MonthView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    MonthCalendarView mMonthCalendarView;
+    MonthView mMonthView;
     private int mYear;
     private int mMonth;
     private int mDay;
@@ -39,23 +41,23 @@ public class MainActivity extends AppCompatActivity {
         mMonth = 10;//cal.get(Calendar.MONTH) + 1;
         mDay = 15;//cal.get(Calendar.DATE);
 
-        mMonthCalendarView = (MonthCalendarView) findViewById(R.id.calendar_view);
-        mMonthCalendarView.setDate(mMonth, mYear);
-        mMonthCalendarView.setCurrentDay(mDay);
+        mMonthView = (MonthView) findViewById(R.id.calendar_view);
+        mMonthView.setDate(mMonth, mYear);
+        mMonthView.setCurrentDay(mDay);
 
         inputTestData();
 
-        mMonthCalendarView.setDaySelectedListener(new MonthCalendarView.DaySelectionListener() {
+        mMonthView.setDaySelectedListener(new CalendarView.DaySelectionListener() {
             @Override
-            public void onTapEnded(MonthCalendarView monthCalendarView, int day) {
-                Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(day), Toast.LENGTH_SHORT).show();
-                mMonthCalendarView.setSelectedDay(day);
+            public void onTapEnded(CalendarView calendarView, CalendarView.DayMetadata day) {
+                Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(day.getDay()), Toast.LENGTH_SHORT).show();
+                mMonthView.setSelectedDay(day.getDay());
             }
 
             @Override
-            public void onLongClick(MonthCalendarView monthCalendarView, int day) {
-                Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(day), Toast.LENGTH_SHORT).show();
-                mMonthCalendarView.setSelectedDay(day);
+            public void onLongClick(CalendarView calendarView, CalendarView.DayMetadata day) {
+                Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(day.getDay()), Toast.LENGTH_SHORT).show();
+                mMonthView.setSelectedDay(day.getDay());
             }
         });
 
@@ -72,13 +74,13 @@ public class MainActivity extends AppCompatActivity {
                                 if (proposedMonth != mMonth || mYear != year) {
                                     mYear = year;
                                     mMonth = proposedMonth;
-                                    mMonthCalendarView.setDate(mMonth, mYear);
+                                    mMonthView.setDate(mMonth, mYear);
                                     // If the month or year changes, you need to input the data
                                     // again
                                     inputTestData();
                                 }
                                 mDay = dayOfMonth;
-                                mMonthCalendarView.setCurrentDay(mDay);
+                                mMonthView.setCurrentDay(mDay);
                             }
                         },
                         mYear, mMonth - 1, mDay).show();
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         sunday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.SUNDAY_SHIFT);
+                mMonthView.setFirstDayOfTheWeek(MonthView.SUNDAY_SHIFT);
             }
         });
 
@@ -97,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         monday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.MONDAY_SHIFT);
+                mMonthView.setFirstDayOfTheWeek(MonthView.MONDAY_SHIFT);
             }
         });
 
@@ -105,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         saturday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMonthCalendarView.setFirstDayOfTheWeek(MonthCalendarView.SATURDAY_SHIFT);
+                mMonthView.setFirstDayOfTheWeek(MonthView.SATURDAY_SHIFT);
             }
         });
 
@@ -114,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 View testView = getLayoutInflater().inflate(R.layout.test_view1, null);
-                mMonthCalendarView.addViewToDayInMonth(mMonthCalendarView.getSelectedDay(),
+                mMonthView.addViewToDay(mMonthView.getSelectedDay(),
                         testView);
             }
         });
@@ -124,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 View testView = getLayoutInflater().inflate(R.layout.test_view2, null);
-                mMonthCalendarView.addViewToDayInMonth(mMonthCalendarView.getSelectedDay(),
+                mMonthView.addViewToDay(mMonthView.getSelectedDay(),
                         testView);
             }
         });
@@ -133,10 +135,10 @@ public class MainActivity extends AppCompatActivity {
         delFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<View> content = mMonthCalendarView.getDayContent(mMonthCalendarView.getSelectedDay());
-                if (!(content.size() > 0)) return;
+                ArrayList<View> content = mMonthView.getDayContent(mMonthView.getSelectedDay());
+                if (!(content != null && content.size() > 0)) return;
                 content.remove(0);
-                mMonthCalendarView.setDayContent(mMonthCalendarView.getSelectedDay(), content);
+                mMonthView.setDayContent(mMonthView.getSelectedDay(), content);
             }
         });
 
@@ -144,10 +146,10 @@ public class MainActivity extends AppCompatActivity {
         delLast.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<View> content = mMonthCalendarView.getDayContent(mMonthCalendarView.getSelectedDay());
-                if (!(content.size() > 0)) return;
+                ArrayList<View> content = mMonthView.getDayContent(mMonthView.getSelectedDay());
+                if (!(content != null && content.size() > 0)) return;
                 content.remove(content.size() - 1);
-                mMonthCalendarView.setDayContent(mMonthCalendarView.getSelectedDay(), content);
+                mMonthView.setDayContent(mMonthView.getSelectedDay(), content);
             }
         });
 
@@ -163,26 +165,26 @@ public class MainActivity extends AppCompatActivity {
 
     private void inputTestData() {
         View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(1, testView1);
+        mMonthView.addViewToDayInCurrentMonth(1, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        mMonthView.addViewToDayInCurrentMonth(2, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        mMonthView.addViewToDayInCurrentMonth(2, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(2, testView1);
+        mMonthView.addViewToDayInCurrentMonth(2, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(3, testView1);
+        mMonthView.addViewToDayInCurrentMonth(3, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-        mMonthCalendarView.addViewToDayInMonth(4, testView1);
+        mMonthView.addViewToDayInCurrentMonth(4, testView1);
 
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(30, testView1);
+        mMonthView.addViewToDayInCurrentMonth(30, testView1);
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(31, testView1);
+        mMonthView.addViewToDayInCurrentMonth(31, testView1);
 
         // Invalid day gets ignored
         testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-        mMonthCalendarView.addViewToDayInMonth(32, testView1);
+        mMonthView.addViewToDayInCurrentMonth(32, testView1);
 
         addOutOfMonth();
     }
@@ -191,13 +193,13 @@ public class MainActivity extends AppCompatActivity {
         // Out of month cells get placed, but will get discarded if the
         // start of the week changes
         View testView1;
-        for (int i = 0; i < mMonthCalendarView.getFirstCellOfMonth(); i++) {
+        for (int i = 0; i < mMonthView.getFirstCellOfMonth(); i++) {
             testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mMonthCalendarView.addViewToCell(i, testView1);
+            mMonthView.addViewToCell(i, testView1);
         }
-        for (int i = mMonthCalendarView.getLastCellOfMonth(); i < MonthCalendarView.DAYS_IN_GRID; i++) {
+        for (int i = mMonthView.getLastCellOfMonth(); i < MonthView.DAYS_IN_GRID; i++) {
             testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            mMonthCalendarView.addViewToCell(i, testView1);
+            mMonthView.addViewToCell(i, testView1);
         }
     }
 
@@ -216,7 +218,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.switch_activity) {
+            Intent goToActivity = new Intent(getApplicationContext(), WeekActivity.class);
+            startActivity(goToActivity);
             return true;
         }
 

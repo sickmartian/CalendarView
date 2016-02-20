@@ -1,66 +1,32 @@
 package com.sickmartian.calendarview;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.IntDef;
-import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 
-import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.TimeZone;
 
 /**
  * Created by ***REMOVED*** on 11/24/2015.
  */
-public class MonthCalendarView extends ViewGroup
+public class MonthView extends CalendarView
         implements GestureDetector.OnGestureListener {
 
     private static final int INITIAL = -1;
     public static final int DAYS_IN_GRID = 42;
-    public static final int DAYS_IN_WEEK = 7;
     private static final String SINGLE_DIGIT_DAY_WIDTH_TEMPLATE = "7";
     private static final String DOUBLE_DIGIT_DAY_WIDTH_TEMPLATE = "30";
     private static final String SPECIAL_DAY_THAT_NEEDS_WORKAROUND = "31";
-
-    @IntDef({SUNDAY_SHIFT, SATURDAY_SHIFT, MONDAY_SHIFT})
-    public @interface PossibleWeekShift {}
-    public static final int SUNDAY_SHIFT = 0;
-    public static final int SATURDAY_SHIFT = 1;
-    public static final int MONDAY_SHIFT = 6;
-    private int mFirstDayOfTheWeekShift = SUNDAY_SHIFT;
-
-    // Attributes to draw
-    final Paint mActiveTextColor;
-    final Paint mSeparationPaint;
-    final Paint mInactiveTextColor;
-    final Paint mInactiveBackgroundColor;
-    final Paint mActiveBackgroundColor;
-    final Paint mSelectedBackgroundColor;
-    final Drawable mCurrentDayDrawable;
-    final float mDecorationSize;
-    final float mBetweenSiblingsPadding;
-    boolean mShowOverflow;
-    final Paint mOverflowPaint;
-    final float mOverflowHeight;
-    final float mTextSize;
-    final Rect mReusableTextBound = new Rect();
-    final Paint mCurrentDayTextColor;
 
     // User set state
     ArrayList<ArrayList<View>> mChildInDays;
@@ -73,191 +39,11 @@ public class MonthCalendarView extends ViewGroup
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     String[] mDayNumbers = new String[DAYS_IN_GRID];
     ArrayList<Integer> mCellsWithOverflow;
-    String[] mWeekDays;
     int mLastDayOfMonth;
     int mFirstCellOfMonth = INITIAL;
-    float mEndOfHeaderWithoutWeekday;
-    float mEndOfHeaderWithWeekday;
-    int mSingleLetterWidth;
-    int mSingleLetterHeight;
-    float dp1;
 
-    // Interaction
-    GestureDetectorCompat mDetector;
-    DaySelectionListener mDaySelectionListener;
-    public interface DaySelectionListener {
-        void onTapEnded(MonthCalendarView monthCalendarView, int day);
-        void onLongClick(MonthCalendarView monthCalendarView, int day);
-    }
-
-    public MonthCalendarView(Context context, AttributeSet attrs) {
+    public MonthView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs,
-                R.styleable.MonthCalendarView,
-                0, 0);
-
-        float dp4 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
-        dp1 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
-
-        try {
-            // Text
-            mTextSize = a.getDimension(R.styleable.MonthCalendarView_textSize,
-                    getResources().getDimension(R.dimen.calendar_view_default_text_size));
-
-            mCurrentDayTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCurrentDayTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_currentDayTextColor, Color.WHITE));
-            mCurrentDayTextColor.setTextSize(mTextSize);
-
-            mActiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mActiveTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_activeTextColor, Color.BLACK));
-            mActiveTextColor.setTextSize(mTextSize);
-
-            mInactiveTextColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mInactiveTextColor.setColor(a.getColor(R.styleable.MonthCalendarView_inactiveTextColor, Color.DKGRAY));
-            mInactiveTextColor.setTextSize(mTextSize);
-
-            // Cell background
-            mSeparationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mSeparationPaint.setStyle(Paint.Style.STROKE);
-            mSeparationPaint.setColor(a.getColor(R.styleable.MonthCalendarView_separatorColor, Color.LTGRAY));
-
-            mActiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mActiveBackgroundColor.setStyle(Paint.Style.FILL);
-            mActiveBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_activeBackgroundColor, Color.WHITE));
-
-            mInactiveBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mInactiveBackgroundColor.setStyle(Paint.Style.FILL);
-            mInactiveBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_inactiveBackgroundColor, Color.GRAY));
-
-            mSelectedBackgroundColor = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mSelectedBackgroundColor.setStyle(Paint.Style.FILL);
-            mSelectedBackgroundColor.setColor(a.getColor(R.styleable.MonthCalendarView_selectedBackgroundColor, Color.YELLOW));
-
-            // Decoration
-            mCurrentDayDrawable = a.getDrawable(R.styleable.MonthCalendarView_currentDayDecorationDrawable);
-
-            mDecorationSize = a.getDimension(R.styleable.MonthCalendarView_currentDayDecorationSize, 0);
-            mBetweenSiblingsPadding = dp4;
-
-            // Overflow
-            mShowOverflow = a.getBoolean(R.styleable.MonthCalendarView_showOverflow, true);
-            mOverflowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mOverflowPaint.setStyle(Paint.Style.FILL);
-            mOverflowPaint.setColor(a.getColor(R.styleable.MonthCalendarView_overflowColor, Color.GREEN));
-            mOverflowHeight = a.getDimension(R.styleable.MonthCalendarView_overflowHeight,
-                    getResources().getDimension(R.dimen.calendar_view_default_overflow_height));
-        } finally {
-            a.recycle();
-        }
-
-        // Arrays in initial state so we can draw ourselves on the editor
-        removeAllContent();
-
-        // Calculate a bunch of no-data dependent dimensions
-        mActiveTextColor.getTextBounds("W", 0, 1, mReusableTextBound);
-        mSingleLetterWidth = mReusableTextBound.width();
-        mSingleLetterHeight = mReusableTextBound.height();
-        if (mDecorationSize > 0) {
-            mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2+ mDecorationSize;
-            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mDecorationSize + mSingleLetterHeight;
-        } else {
-            mEndOfHeaderWithoutWeekday = mBetweenSiblingsPadding * 2 + mSingleLetterHeight;
-            mEndOfHeaderWithWeekday = mBetweenSiblingsPadding * 3 + mSingleLetterHeight * 2;
-        }
-
-        // Interaction
-        setupInteraction(context);
-
-        // We will draw ourselves, even if we are a ViewGroup
-        setWillNotDraw(false);
-
-        setupWeekDays();
-    }
-
-    public void removeAllContent() {
-        removeAllViews();
-
-        mCellsWithOverflow = new ArrayList<>();
-        mChildInDays = new ArrayList<>();
-        for (int i = 0; i < DAYS_IN_GRID; i++) {
-            mChildInDays.add(i, new ArrayList<View>());
-        }
-    }
-
-    private void setupInteraction(Context context) {
-        mDetector = new GestureDetectorCompat(context, this);
-        mDetector.setIsLongpressEnabled(true);
-    }
-
-    // Convenience methods to interact
-    public void addViewToCell(int cellNumber, View viewToAppend) {
-        addView(viewToAppend);
-
-        ArrayList<View> dayArray = mChildInDays.get(cellNumber);
-        dayArray.add(viewToAppend);
-        mChildInDays.set(cellNumber, dayArray);
-
-        invalidate();
-    }
-
-    public void addViewToDayInMonth(int dayInMonth, View viewToAppend) {
-        if (dayInMonth < 0 || dayInMonth > mLastDayOfMonth) return;
-        addViewToCell(dayInMonth + mFirstCellOfMonth - 1, viewToAppend);
-    }
-
-    public void setCurrentDay(int dayOfThisMonth) {
-        // Only mark as current if it is this month
-        if (dayOfThisMonth <= mLastDayOfMonth && dayOfThisMonth > 0) {
-            mCurrentDay = dayOfThisMonth;
-            invalidate();
-        } else if (mCurrentDay != INITIAL) {
-            // Only invalidate previous layout if we had a current day before
-            mCurrentDay = INITIAL;
-            invalidate();
-        }
-    }
-
-    public void setCurrentDay(Calendar date) {
-        // Only mark as current if it is this month
-        if (date != null &&
-                date.get(Calendar.YEAR) == mYear &&
-                date.get(Calendar.MONTH) == mMonth) {
-            mCurrentDay = date.get(Calendar.DATE);
-            invalidate();
-        } else if (date == null || mCurrentDay != INITIAL) {
-            // Only invalidate previous layout if we had a current day before
-            mCurrentDay = INITIAL;
-            invalidate();
-        }
-    }
-
-    public void setSelectedDay(int newSelectedDay) {
-        // Accept days in the month
-        if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
-            mSelectedDay = newSelectedDay;
-            invalidate();
-            // Or the initial to unset it
-        } else if (newSelectedDay == INITIAL) {
-            mSelectedDay = INITIAL;
-            invalidate();
-        }
-    }
-
-    public void setSelectedDay(Calendar date) {
-        // Only mark as selected if it is this month
-        if (date != null &&
-                date.get(Calendar.YEAR) == mYear &&
-                date.get(Calendar.MONTH) == mMonth) {
-            mSelectedDay = date.get(Calendar.DATE);
-            invalidate();
-        } else if (date == null || mSelectedDay != INITIAL) {
-            //Unset if null or not of this month and we
-            // have one selected
-            mSelectedDay = INITIAL;
-            invalidate();
-        }
     }
 
     private void setDateInternal(int month, int year) {
@@ -301,6 +87,82 @@ public class MonthCalendarView extends ViewGroup
         invalidate();
     }
 
+    // Convenience methods to interact
+    public void removeAllContent() {
+        removeAllViews();
+
+        mCellsWithOverflow = new ArrayList<>();
+        mChildInDays = new ArrayList<>();
+        for (int i = 0; i < DAYS_IN_GRID; i++) {
+            mChildInDays.add(i, new ArrayList<View>());
+        }
+    }
+
+    public void addViewToCell(int cellNumber, View viewToAppend) {
+        if (!(cellNumber > 0 && cellNumber < DAYS_IN_GRID)) return;
+
+        addView(viewToAppend);
+
+        ArrayList<View> dayArray = mChildInDays.get(cellNumber);
+        dayArray.add(viewToAppend);
+        mChildInDays.set(cellNumber, dayArray);
+
+        invalidate();
+    }
+
+    public void setCurrentDay(Calendar currentDay) {
+        // Only mark as current if it is this month
+        if (currentDay != null &&
+                currentDay.get(Calendar.YEAR) == mYear &&
+                currentDay.get(Calendar.MONTH) == mMonth) {
+            mCurrentDay = currentDay.get(Calendar.DATE);
+            invalidate();
+        } else if (currentDay == null || mCurrentDay != INITIAL) {
+            // Only invalidate previous layout if we had a current day before
+            mCurrentDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setCurrentDay(int dayOfThisMonth) {
+        // Only mark as current if it is this month
+        if (dayOfThisMonth <= mLastDayOfMonth && dayOfThisMonth > 0) {
+            mCurrentDay = dayOfThisMonth;
+            invalidate();
+        } else if (mCurrentDay != INITIAL) {
+            // Only invalidate previous layout if we had a current day before
+            mCurrentDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setSelectedDay(int newSelectedDay) {
+        // Accept days in the month
+        if (newSelectedDay <= mLastDayOfMonth && newSelectedDay > 0) {
+            mSelectedDay = newSelectedDay;
+            invalidate();
+            // Or the initial to unset it
+        } else if (newSelectedDay == INITIAL) {
+            mSelectedDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setSelectedDay(Calendar date) {
+        // Only mark as selected if it is this month
+        if (date != null &&
+                date.get(Calendar.YEAR) == mYear &&
+                date.get(Calendar.MONTH) == mMonth) {
+            mSelectedDay = date.get(Calendar.DATE);
+            invalidate();
+        } else if (date == null || mSelectedDay != INITIAL) {
+            //Unset if null or not of this month and we
+            // have one selected
+            mSelectedDay = INITIAL;
+            invalidate();
+        }
+    }
+
     public void setDate(int month, int year) {
         mYear = year;
         mMonth = month - 1;
@@ -310,12 +172,8 @@ public class MonthCalendarView extends ViewGroup
         sharedSetDate();
     }
 
-    public int getSelectedDay() {
-        return mSelectedDay;
-    }
-
-    public int getFirstDayOfTheWeek() {
-        return mFirstDayOfTheWeekShift;
+    public DayMetadata getSelectedDay() {
+        return new DayMetadata(mYear, mMonth, mSelectedDay);
     }
 
     public void setFirstDayOfTheWeek(int firstDayOfTheWeekShift) {
@@ -357,23 +215,29 @@ public class MonthCalendarView extends ViewGroup
         }
     }
 
-    public boolean isOverflowShown() {
-        return mShowOverflow;
-    }
-
-    public void setShowOverflow(boolean showOverflow) {
-        if (showOverflow != mShowOverflow) {
-            mShowOverflow = showOverflow;
-            invalidate();
-        }
-    }
-
     public int getFirstCellOfMonth() {
         return mFirstCellOfMonth;
     }
 
     public int getLastCellOfMonth() {
         return mFirstCellOfMonth + mLastDayOfMonth;
+    }
+
+    public ArrayList<View> getDayContent(DayMetadata dayMetadata) {
+        if (dayMetadata != null) {
+            if (dayMetadata.getMonth() == mMonth && dayMetadata.getYear() == mYear) {
+                return getDayContent(dayMetadata.getDay());
+            }
+        }
+        return null;
+    }
+
+    public void setDayContent(DayMetadata dayMetadata, ArrayList<View> newContent) {
+        if (dayMetadata != null) {
+            if (dayMetadata.getMonth() == mMonth && dayMetadata.getYear() == mYear) {
+                setDayContent(dayMetadata.getDay(), newContent);
+            }
+        }
     }
 
     public ArrayList<View> getDayContent(int dayInMonth) {
@@ -414,6 +278,17 @@ public class MonthCalendarView extends ViewGroup
         // Set new content
         mChildInDays.set(cellNumber, newContent);
         requestLayout();
+    }
+
+    public void addViewToDay(DayMetadata dayMetadata, View viewToAppend) {
+        if (dayMetadata.getMonth() == mMonth && dayMetadata.getYear() == mYear) {
+            addViewToDayInCurrentMonth(dayMetadata.getDay(), viewToAppend);
+        }
+    }
+
+    public void addViewToDayInCurrentMonth(int dayInMonth, View newView) {
+        if (dayInMonth < 0 || dayInMonth > mLastDayOfMonth) return;
+        addViewToCell(dayInMonth + mFirstCellOfMonth - 1, newView);
     }
 
     // View methods
@@ -641,10 +516,6 @@ public class MonthCalendarView extends ViewGroup
     }
 
     // Interaction
-    public void setDaySelectedListener(DaySelectionListener listener) {
-        this.mDaySelectionListener = listener;
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return mDetector.onTouchEvent(event);
@@ -679,7 +550,7 @@ public class MonthCalendarView extends ViewGroup
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
             if (currentDay != INITIAL) {
-                mDaySelectionListener.onTapEnded(this, currentDay);
+                mDaySelectionListener.onTapEnded(this, new DayMetadata(mYear, mMonth, currentDay));
                 return true;
             }
         }
@@ -691,7 +562,7 @@ public class MonthCalendarView extends ViewGroup
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
             if (currentDay != INITIAL) {
-                mDaySelectionListener.onLongClick(this, currentDay);
+                mDaySelectionListener.onLongClick(this, new DayMetadata(mYear, mMonth, currentDay));
             }
         }
     }
@@ -775,28 +646,6 @@ public class MonthCalendarView extends ViewGroup
                     return new MyOwnState[size];
                 }
             };
-    }
-
-    // Utils for calendar
-    public static Calendar getUTCCalendar() {
-        return Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    }
-
-    public static void makeCalendarBeginningOfDay(Calendar calendar) {
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-    }
-
-    protected void setupWeekDays() {
-        mWeekDays = new String[DAYS_IN_WEEK];
-        String[] namesOfDays = new DateFormatSymbols().getShortWeekdays();
-        for (int i = 0; i < DAYS_IN_WEEK; i++) {
-            mWeekDays[i] = namesOfDays[1 + (7 - mFirstDayOfTheWeekShift + i) % 7]
-                            .toUpperCase()
-                            .substring(0, 1);
-        }
     }
 
 }

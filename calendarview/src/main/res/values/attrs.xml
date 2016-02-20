@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="MonthCalendarView">
+    <declare-styleable name="MonthView">
         // Text
         <attr name="textSize" format="dimension"/>
         <attr name="activeTextColor" format="color"/>

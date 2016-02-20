@@ -1,6 +1,7 @@
 package com.sickmartian.calendarviewsample;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,7 +15,8 @@ import android.widget.DatePicker;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-import com.sickmartian.calendarview.MonthCalendarView;
+import com.sickmartian.calendarview.CalendarView;
+import com.sickmartian.calendarview.MonthView;
 import com.sickmartian.calendarview.WeekView;
 
 import java.util.ArrayList;
@@ -51,18 +53,18 @@ public class WeekActivity extends AppCompatActivity {
 
         inputTestData();
 
-        mWeekView.setDaySelectedListener(new WeekView.DaySelectionListener() {
+        mWeekView.setDaySelectedListener(new CalendarView.DaySelectionListener() {
             @Override
-            public void onTapEnded(WeekView monthCalendarView, WeekView.CellMetadata cellMetadata) {
-                Toast.makeText(WeekActivity.this, "onTapEnded " + Integer.toString(cellMetadata.getDay()), Toast.LENGTH_SHORT).show();
-                setDay(cellMetadata);
+            public void onTapEnded(CalendarView calendarView, CalendarView.DayMetadata dayMetadata) {
+                Toast.makeText(WeekActivity.this, "onTapEnded " + Integer.toString(dayMetadata.getDay()), Toast.LENGTH_SHORT).show();
+                setDay(dayMetadata);
             }
 
-            private void setDay(WeekView.CellMetadata cellMetadata) {
+            private void setDay(CalendarView.DayMetadata dayMetadata) {
                 Calendar selectedDay = Calendar.getInstance();
-                selectedDay.set(Calendar.YEAR, cellMetadata.getYear());
-                selectedDay.set(Calendar.MONTH, cellMetadata.getMonth());
-                selectedDay.set(Calendar.DATE, cellMetadata.getDay());
+                selectedDay.set(Calendar.YEAR, dayMetadata.getYear());
+                selectedDay.set(Calendar.MONTH, dayMetadata.getMonth() - 1);
+                selectedDay.set(Calendar.DATE, dayMetadata.getDay());
                 selectedDay.set(Calendar.HOUR_OF_DAY, 0);
                 selectedDay.set(Calendar.MINUTE, 0);
                 selectedDay.set(Calendar.SECOND, 0);
@@ -72,9 +74,9 @@ public class WeekActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onLongClick(WeekView monthCalendarView, WeekView.CellMetadata cellMetadata) {
-                Toast.makeText(WeekActivity.this, "onLongClick " + Integer.toString(cellMetadata.getDay()), Toast.LENGTH_SHORT).show();
-                setDay(cellMetadata);
+            public void onLongClick(CalendarView calendarView, CalendarView.DayMetadata dayMetadata) {
+                Toast.makeText(WeekActivity.this, "onLongClick " + Integer.toString(dayMetadata.getDay()), Toast.LENGTH_SHORT).show();
+                setDay(dayMetadata);
             }
         });
 
@@ -111,7 +113,7 @@ public class WeekActivity extends AppCompatActivity {
         sunday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWeekView.setFirstDayOfTheWeek(MonthCalendarView.SUNDAY_SHIFT);
+                mWeekView.setFirstDayOfTheWeek(MonthView.SUNDAY_SHIFT);
                 setCurrentByState();
             }
         });
@@ -120,7 +122,7 @@ public class WeekActivity extends AppCompatActivity {
         monday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWeekView.setFirstDayOfTheWeek(MonthCalendarView.MONDAY_SHIFT);
+                mWeekView.setFirstDayOfTheWeek(MonthView.MONDAY_SHIFT);
                 setCurrentByState();
             }
         });
@@ -129,7 +131,7 @@ public class WeekActivity extends AppCompatActivity {
         saturday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mWeekView.setFirstDayOfTheWeek(MonthCalendarView.SATURDAY_SHIFT);
+                mWeekView.setFirstDayOfTheWeek(MonthView.SATURDAY_SHIFT);
                 setCurrentByState();
             }
         });
@@ -159,7 +161,7 @@ public class WeekActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ArrayList<View> content = mWeekView.getDayContent(mWeekView.getSelectedDay());
-                if (!(content.size() > 0)) return;
+                if (!(content != null && content.size() > 0)) return;
                 content.remove(0);
                 mWeekView.setDayContent(mWeekView.getSelectedDay(), content);
             }
@@ -170,7 +172,7 @@ public class WeekActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ArrayList<View> content = mWeekView.getDayContent(mWeekView.getSelectedDay());
-                if (!(content.size() > 0)) return;
+                if (!(content != null && content.size() > 0)) return;
                 content.remove(content.size() - 1);
                 mWeekView.setDayContent(mWeekView.getSelectedDay(), content);
             }
@@ -228,7 +230,9 @@ public class WeekActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.switch_activity) {
+            Intent goToActivity = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(goToActivity);
             return true;
         }
 
