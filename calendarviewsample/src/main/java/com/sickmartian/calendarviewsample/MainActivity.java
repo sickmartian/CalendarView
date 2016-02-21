@@ -217,17 +217,17 @@ public class MainActivity extends AppCompatActivity {
             WeekView weekView = (WeekView) mCalendarView;
 
             View testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            weekView.addViewToCell(1, testView1);
+            weekView.addViewToCell(0, testView1);
             testView1 = getLayoutInflater().inflate(R.layout.test_view1, null);
-            weekView.addViewToCell(2, testView1);
+            weekView.addViewToCell(1, testView1);
             testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            weekView.addViewToCell(2, testView1);
+            weekView.addViewToCell(1, testView1);
+            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
+            weekView.addViewToCell(1, testView1);
             testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
             weekView.addViewToCell(2, testView1);
             testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
             weekView.addViewToCell(3, testView1);
-            testView1 = getLayoutInflater().inflate(R.layout.test_view2, null);
-            weekView.addViewToCell(4, testView1);
         } else {
             MonthView mMonthView = (MonthView) mCalendarView;
 

@@ -75,12 +75,11 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            DayMetadata metadata = (DayMetadata) o;
+            DayMetadata that = (DayMetadata) o;
 
-            if (year != metadata.year) return false;
-            if (month != metadata.month) return false;
-            if (day != metadata.day) return false;
-            return dayString != null ? dayString.equals(metadata.dayString) : metadata.dayString == null;
+            if (year != that.year) return false;
+            if (month != that.month) return false;
+            return day == that.day;
 
         }
 
@@ -89,7 +88,6 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
             int result = year;
             result = 31 * result + month;
             result = 31 * result + day;
-            result = 31 * result + (dayString != null ? dayString.hashCode() : 0);
             return result;
         }
     }

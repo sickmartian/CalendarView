@@ -106,7 +106,7 @@ public class WeekView extends CalendarView
     }
 
     public void addViewToCell(int cellNumber, View viewToAppend) {
-        if (!(cellNumber > 0 && cellNumber < DAYS_IN_GRID)) return;
+        if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return;
 
         addView(viewToAppend);
 
@@ -119,10 +119,13 @@ public class WeekView extends CalendarView
 
     @Override
     public void addViewToDay(DayMetadata dayMetadata, View viewToAppend) {
+        if (dayMetadata == null) return;
+
         int cell = 0;
         for (DayMetadata metadata : mDayMetadata) {
             if (dayMetadata.equals(metadata)) {
                 addViewToCell(cell, viewToAppend);
+                break;
             }
             cell++;
         }

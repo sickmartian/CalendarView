@@ -99,7 +99,7 @@ public class MonthView extends CalendarView
     }
 
     public void addViewToCell(int cellNumber, View viewToAppend) {
-        if (!(cellNumber > 0 && cellNumber < DAYS_IN_GRID)) return;
+        if (cellNumber < 0 || cellNumber > DAYS_IN_GRID) return;
 
         addView(viewToAppend);
 
