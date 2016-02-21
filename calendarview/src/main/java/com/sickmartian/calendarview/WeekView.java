@@ -157,6 +157,32 @@ public class WeekView extends CalendarView
         }
     }
 
+    public void setCurrentDay(DayMetadata currentDay) {
+        if (currentDay == null && mCurrentCell != INITIAL) {
+            mCurrentCell = INITIAL;
+            invalidate();
+            return;
+        } else if (currentDay == null) {
+            return;
+        }
+
+        // Only mark and invalidate if it corresponds to our cells
+        int i = 0;
+        for (DayMetadata metadata : mDayMetadata) {
+            if (metadata.equals(currentDay)) {
+                mCurrentCell = i;
+                invalidate();
+                return;
+            }
+            i++;
+        }
+
+        if (mCurrentCell != INITIAL) {
+            mCurrentCell = INITIAL;
+            invalidate();
+        }
+    }
+
     public void setSelectedDay(Calendar selectedDay) {
         if (selectedDay == null && mSelectedCell != INITIAL) {
             mSelectedCell = INITIAL;
@@ -185,11 +211,37 @@ public class WeekView extends CalendarView
         }
     }
 
+    public void setSelectedDay(DayMetadata selectedDay) {
+        if (selectedDay == null && mSelectedCell != INITIAL) {
+            mSelectedCell = INITIAL;
+            invalidate();
+            return;
+        } else if (selectedDay == null) {
+            return;
+        }
+
+        // Only mark and invalidate if it corresponds to our cells
+        int i = 0;
+        for (DayMetadata metadata : mDayMetadata) {
+            if (metadata.equals(selectedDay)) {
+                mSelectedCell = i;
+                invalidate();
+                return;
+            }
+            i++;
+        }
+
+        if (mSelectedCell != INITIAL) {
+            mSelectedCell = INITIAL;
+            invalidate();
+        }
+    }
+
     public void setDate(int calendarWeek, int year) {
         mYear = year;
         mCalendarWeek = calendarWeek - 1;
 
-        setSelectedDay(null);
+        setSelectedDay((DayMetadata) null);
         removeAllContent();
         sharedSetDate();
     }

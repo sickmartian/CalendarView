@@ -124,6 +124,20 @@ public class MonthView extends CalendarView
         }
     }
 
+    public void setCurrentDay(DayMetadata dayMetadata) {
+        // Only mark as current if it is this month
+        if (dayMetadata != null &&
+                dayMetadata.getYear() == mYear &&
+                dayMetadata.getMonth() == mMonth + 1) {
+            mCurrentDay = dayMetadata.getDay();
+            invalidate();
+        } else if (dayMetadata == null || mCurrentDay != INITIAL) {
+            // Only invalidate previous layout if we had a current day before
+            mCurrentDay = INITIAL;
+            invalidate();
+        }
+    }
+
     public void setCurrentDay(int dayOfThisMonth) {
         // Only mark as current if it is this month
         if (dayOfThisMonth <= mLastDayOfMonth && dayOfThisMonth > 0) {
@@ -157,6 +171,21 @@ public class MonthView extends CalendarView
             invalidate();
         } else if (date == null || mSelectedDay != INITIAL) {
             //Unset if null or not of this month and we
+            // have one selected
+            mSelectedDay = INITIAL;
+            invalidate();
+        }
+    }
+
+    public void setSelectedDay(DayMetadata dayMetadata) {
+        // Only mark as selected if it is this month
+        if (dayMetadata != null &&
+                dayMetadata.getYear() == mYear &&
+                dayMetadata.getMonth() == mMonth + 1) {
+            mSelectedDay = dayMetadata.getDay();
+            invalidate();
+        } else if (dayMetadata == null || mSelectedDay != INITIAL) {
+            // Unset if null or not of this month and we
             // have one selected
             mSelectedDay = INITIAL;
             invalidate();

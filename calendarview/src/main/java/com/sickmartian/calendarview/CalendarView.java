@@ -258,7 +258,9 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
     public abstract void removeAllContent();
 
     public abstract void setCurrentDay(Calendar currentDay);
+    public abstract void setCurrentDay(DayMetadata dayMetadata);
     public abstract void setSelectedDay(Calendar selectedDay);
+    public abstract void setSelectedDay(DayMetadata dayMetadata);
 
     public abstract DayMetadata getSelectedDay();
     public abstract int getSelectedCell();

@@ -72,26 +72,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTapEnded(CalendarView calendarView, CalendarView.DayMetadata dayMetadata) {
                 Toast.makeText(MainActivity.this, "onTapEnded " + Integer.toString(dayMetadata.getDay()), Toast.LENGTH_SHORT).show();
-                setDay(dayMetadata);
-            }
-
-            private void setDay(CalendarView.DayMetadata dayMetadata) {
-                Calendar selectedDay = Calendar.getInstance();
-                selectedDay.set(Calendar.YEAR, dayMetadata.getYear());
-                selectedDay.set(Calendar.MONTH, dayMetadata.getMonth() - 1);
-                selectedDay.set(Calendar.DATE, dayMetadata.getDay());
-                selectedDay.set(Calendar.HOUR_OF_DAY, 0);
-                selectedDay.set(Calendar.MINUTE, 0);
-                selectedDay.set(Calendar.SECOND, 0);
-                selectedDay.set(Calendar.MILLISECOND, 0);
-
-                mCalendarView.setSelectedDay(selectedDay);
+                mCalendarView.setSelectedDay(dayMetadata);
             }
 
             @Override
             public void onLongClick(CalendarView calendarView, CalendarView.DayMetadata dayMetadata) {
                 Toast.makeText(MainActivity.this, "onLongClick " + Integer.toString(dayMetadata.getDay()), Toast.LENGTH_SHORT).show();
-                setDay(dayMetadata);
+                mCalendarView.setSelectedDay(dayMetadata);
             }
         });
 
