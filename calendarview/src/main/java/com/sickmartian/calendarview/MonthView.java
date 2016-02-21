@@ -176,6 +176,13 @@ public class MonthView extends CalendarView
         return new DayMetadata(mYear, mMonth, mSelectedDay);
     }
 
+    public int getSelectedCell() {
+        if (mSelectedDay == INITIAL) {
+            return INITIAL;
+        }
+        return mFirstCellOfMonth + mSelectedDay - 1;
+    }
+
     public void setFirstDayOfTheWeek(int firstDayOfTheWeekShift) {
         if (mFirstDayOfTheWeekShift != firstDayOfTheWeekShift) {
             mFirstDayOfTheWeekShift = firstDayOfTheWeekShift;
@@ -550,7 +557,7 @@ public class MonthView extends CalendarView
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
             if (currentDay != INITIAL) {
-                mDaySelectionListener.onTapEnded(this, new DayMetadata(mYear, mMonth, currentDay));
+                mDaySelectionListener.onTapEnded(this, new DayMetadata(mYear, mMonth + 1, currentDay));
                 return true;
             }
         }
@@ -562,7 +569,7 @@ public class MonthView extends CalendarView
         if (mDaySelectionListener != null) {
             int currentDay = getCellFromLocation(e.getX(), e.getY());
             if (currentDay != INITIAL) {
-                mDaySelectionListener.onLongClick(this, new DayMetadata(mYear, mMonth, currentDay));
+                mDaySelectionListener.onLongClick(this, new DayMetadata(mYear, mMonth + 1, currentDay));
             }
         }
     }

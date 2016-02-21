@@ -200,22 +200,6 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
         setupWeekDays();
     }
 
-    // Interaction
-    GestureDetectorCompat mDetector;
-    DaySelectionListener mDaySelectionListener;
-    public interface DaySelectionListener {
-        void onTapEnded(CalendarView calendarView, DayMetadata day);
-        void onLongClick(CalendarView calendarView, DayMetadata day);
-    }
-    public void setDaySelectedListener(DaySelectionListener listener) {
-        this.mDaySelectionListener = listener;
-    }
-
-    private void setupInteraction(Context context) {
-        mDetector = new GestureDetectorCompat(context, this);
-        mDetector.setIsLongpressEnabled(true);
-    }
-
     // Utils for calendar
     public int getCalendarDayForShift() {
         int dayForShift;
@@ -255,12 +239,10 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
         }
     }
 
+    // Common interface
+    public abstract void setFirstDayOfTheWeek(int firstDayOfTheWeekShift);
     public int getFirstDayOfTheWeek() {
         return mFirstDayOfTheWeekShift;
-    }
-
-    public boolean isOverflowShown() {
-        return mShowOverflow;
     }
 
     public void setShowOverflow(boolean showOverflow) {
@@ -269,12 +251,17 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
             invalidate();
         }
     }
+    public boolean isOverflowShown() {
+        return mShowOverflow;
+    }
 
-    public abstract void setFirstDayOfTheWeek(int firstDayOfTheWeekShift);
     public abstract void removeAllContent();
+
     public abstract void setCurrentDay(Calendar currentDay);
     public abstract void setSelectedDay(Calendar selectedDay);
+
     public abstract DayMetadata getSelectedDay();
+    public abstract int getSelectedCell();
 
     public abstract void addViewToDay(DayMetadata dayMetadata, View viewToAppend);
     public abstract void addViewToCell(int cellNumber, View viewToAppend);
@@ -284,5 +271,21 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
 
     public abstract ArrayList<View> getCellContent(int cellNumber);
     public abstract void setCellContent(int cellNumber, ArrayList<View> newContent);
+
+    // Interaction
+    GestureDetectorCompat mDetector;
+    DaySelectionListener mDaySelectionListener;
+    public interface DaySelectionListener {
+        void onTapEnded(CalendarView calendarView, DayMetadata day);
+        void onLongClick(CalendarView calendarView, DayMetadata day);
+    }
+    public void setDaySelectedListener(DaySelectionListener listener) {
+        this.mDaySelectionListener = listener;
+    }
+
+    private void setupInteraction(Context context) {
+        mDetector = new GestureDetectorCompat(context, this);
+        mDetector.setIsLongpressEnabled(true);
+    }
 
 }

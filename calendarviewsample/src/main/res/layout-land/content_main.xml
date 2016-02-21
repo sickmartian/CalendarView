@@ -90,7 +90,7 @@
         calendar_view:overflowColor="@color/colorPrimary"
         calendar_view:overflowHeight="2dp"
         calendar_view:separatorColor="@color/colorCalendarDivider"
-        android:id="@+id/calendar_view"
+        android:id="@+id/weekView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
