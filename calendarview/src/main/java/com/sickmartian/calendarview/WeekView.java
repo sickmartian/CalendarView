@@ -39,8 +39,6 @@ public class WeekView extends CalendarView
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
     DayMetadata[] mDayMetadata = new DayMetadata[DAYS_IN_GRID];
     ArrayList<Integer> mCellsWithOverflow;
-    int mLastDayOfCW;
-    int mFirstDayOfCW = INITIAL;
 
     public WeekView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -77,12 +75,12 @@ public class WeekView extends CalendarView
         }
         cal.add(Calendar.DATE, dayDifference);
 
-        mLastDayOfCW = mFirstDayOfCW = cal.get(Calendar.DATE);
+        int lastDay;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
-            mLastDayOfCW = cal.get(Calendar.DATE);
+            lastDay = cal.get(Calendar.DATE);
             mDayMetadata[i] = new DayMetadata(cal.get(Calendar.YEAR),
                     cal.get(Calendar.MONTH) + 1,
-                    mLastDayOfCW
+                    lastDay
             );
             cal.add(Calendar.DATE, 1);
         }
@@ -318,6 +316,18 @@ public class WeekView extends CalendarView
         requestLayout();
     }
 
+    public DayMetadata getFirstDay() {
+        if (mDayMetadata == null) return null;
+
+        return mDayMetadata[0];
+    }
+
+    public DayMetadata getLastDay() {
+        if (mDayMetadata == null) return null;
+
+        return mDayMetadata[mDayMetadata.length - 1];
+    }
+
     // View methods
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -426,7 +436,6 @@ public class WeekView extends CalendarView
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         // Weekdays and day numbers
-        int lastCellOfMonth = mFirstDayOfCW + mLastDayOfCW - 1;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
             // Selected day has special background
             if (i == mSelectedCell) {
