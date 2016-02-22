@@ -22,17 +22,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String DAY_PARAMETER = "day";
     private  static final String MONTH_PARAMETER = "month";
     private  static final String YEAR_PARAMETER = "year";
-    private  static final String CW_PARAMETER = "cw";
 
     CalendarView mCalendarView;
 
     private int mYear;
-    private int mCalendarWeek;
     private int mDay;
     private int mMonth;
 
     public void setStateByCalendar(Calendar cal) {
-        mCalendarWeek = cal.get(Calendar.WEEK_OF_YEAR);
         mYear = cal.get(Calendar.YEAR);
         mMonth = cal.get(Calendar.MONTH) + 1; // We use base 1 months..
                                               // You should use joda time or a sane calendar really
@@ -53,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
             mDay = savedInstanceState.getInt(DAY_PARAMETER);
             mMonth = savedInstanceState.getInt(MONTH_PARAMETER);
             mYear = savedInstanceState.getInt(YEAR_PARAMETER);
-            mCalendarWeek = savedInstanceState.getInt(CW_PARAMETER);
         }
 
         // The two views can't have the same id, or the state won't be preserved
@@ -91,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                                 Calendar selectedDay = Calendar.getInstance();
-                                selectedDay.set(Calendar.YEAR, mYear);
+                                selectedDay.set(Calendar.YEAR, year);
                                 selectedDay.set(Calendar.MONTH, monthOfYear);
                                 selectedDay.set(Calendar.DATE, dayOfMonth);
                                 selectedDay.set(Calendar.HOUR_OF_DAY, 0);
@@ -187,11 +183,12 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(DAY_PARAMETER, mDay);
         outState.putInt(MONTH_PARAMETER, mMonth);
         outState.putInt(YEAR_PARAMETER, mYear);
-        outState.putInt(CW_PARAMETER, mCalendarWeek);
     }
 
     private Calendar getCalendarForState() {
         Calendar newCalendar = Calendar.getInstance();
+        newCalendar.setMinimalDaysInFirstWeek(1);
+        newCalendar.setFirstDayOfWeek(Calendar.SUNDAY);
         newCalendar.set(Calendar.YEAR, mYear);
         newCalendar.set(Calendar.MONTH, mMonth - 1);
         newCalendar.set(Calendar.DATE, mDay);
@@ -208,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         if (mCalendarView instanceof MonthView) {
             ((MonthView)mCalendarView).setDate(mMonth, mYear);
         } else {
-            ((WeekView)mCalendarView).setDate(mCalendarWeek, mYear);
+            ((WeekView)mCalendarView).setDate(new CalendarView.DayMetadata(mYear, mMonth, mDay));
         }
     }
 

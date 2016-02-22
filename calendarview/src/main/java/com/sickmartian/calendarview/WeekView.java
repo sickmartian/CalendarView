@@ -33,8 +33,7 @@ public class WeekView extends CalendarView
     ArrayList<ArrayList<View>> mChildInDays;
     int mCurrentCell;
     int mSelectedCell = INITIAL;
-    int mYear;
-    int mCalendarWeek;
+    DayMetadata mDay;
 
     // Things we calculate and use to draw
     RectF[] mDayCells = new RectF[DAYS_IN_GRID];
@@ -52,21 +51,18 @@ public class WeekView extends CalendarView
         mDetector.setIsLongpressEnabled(true);
     }
 
-    private void setDateInternal(int calendarWeek, int year) {
-        mYear = year;
-        mCalendarWeek = calendarWeek;
+    private void setDateInternal(DayMetadata dayMetadata) {
+        mDay = dayMetadata;
 
         sharedSetDate();
     }
 
     private void sharedSetDate() {
-        // Get first day of the CW by number
-        int initialDayOfCW = mCalendarWeek * 7;
-
         Calendar cal = getUTCCalendar();
         makeCalendarBeginningOfDay(cal);
-        cal.set(Calendar.YEAR, mYear);
-        cal.set(Calendar.DAY_OF_YEAR, initialDayOfCW);
+        cal.set(Calendar.YEAR, mDay.getYear());
+        cal.set(Calendar.MONTH, mDay.getMonth() - 1);
+        cal.set(Calendar.DATE, mDay.getDay());
 
         int unadjustedDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
         int requestedInitialDayOfWeek = getCalendarDayForShift();
@@ -240,9 +236,8 @@ public class WeekView extends CalendarView
         }
     }
 
-    public void setDate(int calendarWeek, int year) {
-        mYear = year;
-        mCalendarWeek = calendarWeek - 1;
+    public void setDate(DayMetadata dayMetadata) {
+        mDay = dayMetadata;
 
         setSelectedDay((DayMetadata) null);
         removeAllContent();
@@ -266,7 +261,7 @@ public class WeekView extends CalendarView
 
             // Apply changes
             setupWeekDays(); // Reset weekday names
-            setDateInternal(mCalendarWeek, mYear); // Reset cells - Invalidates the view
+            setDateInternal(mDay); // Reset cells - Invalidates the view
 
             requestLayout();
         }
@@ -598,8 +593,7 @@ public class WeekView extends CalendarView
     protected Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
         MyOwnState myOwnState = new MyOwnState(superState);
-        myOwnState.mYear = mYear;
-        myOwnState.mCalendarWeek = mCalendarWeek;
+        myOwnState.mDay = mDay;
         myOwnState.mCurrentCell = mCurrentCell;
         myOwnState.mSelectedCell = mSelectedCell;
 
@@ -616,7 +610,7 @@ public class WeekView extends CalendarView
         MyOwnState myOwnState = (MyOwnState) state;
         super.onRestoreInstanceState(myOwnState.getSuperState());
 
-        setDateInternal(myOwnState.mCalendarWeek, myOwnState.mYear);
+        setDateInternal(myOwnState.mDay);
         mCurrentCell = myOwnState.mCurrentCell;
         mSelectedCell = myOwnState.mSelectedCell;
     }
@@ -624,8 +618,7 @@ public class WeekView extends CalendarView
     private static class MyOwnState extends BaseSavedState {
         int mCurrentCell;
         int mSelectedCell;
-        int mYear;
-        int mCalendarWeek;
+        DayMetadata mDay;
 
         public MyOwnState(Parcelable superState) {
             super(superState);
@@ -633,8 +626,9 @@ public class WeekView extends CalendarView
 
         public MyOwnState(Parcel in) {
             super(in);
-            mYear = in.readInt();
-            mCalendarWeek = in.readInt();
+            mDay.setDay(in.readInt());
+            mDay.setMonth(in.readInt());
+            mDay.setYear(in.readInt());
             mCurrentCell = in.readInt();
             mSelectedCell = in.readInt();
         }
@@ -642,8 +636,9 @@ public class WeekView extends CalendarView
         @Override
         public void writeToParcel(Parcel out, int flags) {
             super.writeToParcel(out, flags);
-            out.writeInt(mYear);
-            out.writeInt(mCalendarWeek);
+            out.writeInt(mDay.getDay());
+            out.writeInt(mDay.getMonth());
+            out.writeInt(mDay.getYear());
             out.writeInt(mCurrentCell);
             out.writeInt(mSelectedCell);
         }
