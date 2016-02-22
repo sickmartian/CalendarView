@@ -202,7 +202,7 @@ public class MonthView extends CalendarView
     }
 
     public DayMetadata getSelectedDay() {
-        return new DayMetadata(mYear, mMonth, mSelectedDay);
+        return new DayMetadata(mYear, mMonth + 1, mSelectedDay);
     }
 
     public int getSelectedCell() {
