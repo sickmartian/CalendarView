@@ -389,6 +389,8 @@ public class WeekView extends CalendarView
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
         mCellsWithOverflow.clear();
         float topOffset;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
@@ -661,6 +663,12 @@ public class WeekView extends CalendarView
                     return new WeekView.MyOwnState[size];
                 }
             };
+    }
+
+    // Other
+    @Override
+    protected String getLogTag() {
+        return mDay.getYear() + "-" + mDay.getMonth() + "-" + mDay.getDay();
     }
 
 }

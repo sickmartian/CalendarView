@@ -2,6 +2,7 @@ package com.sickmartian.calendarview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -9,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.View;
@@ -23,6 +25,9 @@ import java.util.TimeZone;
  * Created by ***REMOVED*** on 2/20/2016.
  */
 public abstract class CalendarView extends ViewGroup implements GestureDetector.OnGestureListener {
+
+    public static boolean DEBUG = false;
+
     public static final int DAYS_IN_WEEK = 7;
     protected String[] mWeekDays;
 
@@ -272,6 +277,8 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
     public abstract ArrayList<View> getCellContent(int cellNumber);
     public abstract void setCellContent(int cellNumber, ArrayList<View> newContent);
 
+    protected abstract String getLogTag();
+
     // Interaction
     GestureDetectorCompat mDetector;
     DaySelectionListener mDaySelectionListener;
@@ -288,4 +295,20 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
         mDetector.setIsLongpressEnabled(true);
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (DEBUG) Log.d(getLogTag(), "onDraw");
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (DEBUG) Log.d(getLogTag(), "onLayout");
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (DEBUG) Log.d(getLogTag(), "onMeasure");
+    }
 }
