@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String DAY_PARAMETER = "day";
     private  static final String MONTH_PARAMETER = "month";
     private  static final String YEAR_PARAMETER = "year";
+    private static final String FIRST_DAY_OF_WEEK_PARAMETER = "firstDay";
 
     CalendarView mCalendarView;
 
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        int firstDayOfWeek = CalendarView.SUNDAY_SHIFT;
         if (savedInstanceState == null) {
             Calendar cal = Calendar.getInstance();
             setStateByCalendar(cal);
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             mDay = savedInstanceState.getInt(DAY_PARAMETER);
             mMonth = savedInstanceState.getInt(MONTH_PARAMETER);
             mYear = savedInstanceState.getInt(YEAR_PARAMETER);
+            firstDayOfWeek = savedInstanceState.getInt(FIRST_DAY_OF_WEEK_PARAMETER);
         }
 
         // The two views can't have the same id, or the state won't be preserved
@@ -60,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setDateByStateDependingOnView();
+        mCalendarView.setFirstDayOfTheWeek(firstDayOfWeek);
         mCalendarView.setCurrentDay(getCalendarForState());
 
         inputTestData();
@@ -183,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(DAY_PARAMETER, mDay);
         outState.putInt(MONTH_PARAMETER, mMonth);
         outState.putInt(YEAR_PARAMETER, mYear);
+        outState.putInt(FIRST_DAY_OF_WEEK_PARAMETER, mCalendarView.getFirstDayOfTheWeek());
     }
 
     private Calendar getCalendarForState() {

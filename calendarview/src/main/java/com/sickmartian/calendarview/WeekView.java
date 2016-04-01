@@ -56,33 +56,24 @@ public class WeekView extends CalendarView
     }
 
     private void sharedSetDate() {
-        Calendar cal = getUTCCalendar();
-        makeCalendarBeginningOfDay(cal);
-        cal.set(Calendar.YEAR, mDay.getYear());
-        cal.set(Calendar.MONTH, mDay.getMonth() - 1);
-        cal.set(Calendar.DATE, mDay.getDay());
+        Calendar firstDayOfWeek = getUTCCalendar();
+        makeCalendarBeginningOfDay(firstDayOfWeek);
+        firstDayOfWeek.set(Calendar.YEAR, mDay.getYear());
+        firstDayOfWeek.set(Calendar.MONTH, mDay.getMonth() - 1);
+        firstDayOfWeek.set(Calendar.DATE, mDay.getDay());
 
-        int unadjustedDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-        int requestedInitialDayOfWeek = getCalendarDayForShift();
-
-        int dayDifference = 0;
-        if (unadjustedDayOfWeek != requestedInitialDayOfWeek) {
-            if (unadjustedDayOfWeek > requestedInitialDayOfWeek) {
-                dayDifference = requestedInitialDayOfWeek - unadjustedDayOfWeek;
-            } else {
-                dayDifference = unadjustedDayOfWeek - requestedInitialDayOfWeek;
-            }
-        }
-        cal.add(Calendar.DATE, dayDifference);
+        int anyDayOfTheWeek = firstDayOfWeek.get(Calendar.DAY_OF_WEEK) - 1; // Starting on Sunday
+        int givenDayDifferentToStart = ( anyDayOfTheWeek + mFirstDayOfTheWeekShift ) % 7;
+        firstDayOfWeek.add(Calendar.DATE, givenDayDifferentToStart * -1);
 
         int lastDay;
         for (int i = 0; i < DAYS_IN_GRID; i++) {
-            lastDay = cal.get(Calendar.DATE);
-            mDayMetadata[i] = new DayMetadata(cal.get(Calendar.YEAR),
-                    cal.get(Calendar.MONTH) + 1,
+            lastDay = firstDayOfWeek.get(Calendar.DATE);
+            mDayMetadata[i] = new DayMetadata(firstDayOfWeek.get(Calendar.YEAR),
+                    firstDayOfWeek.get(Calendar.MONTH) + 1,
                     lastDay
             );
-            cal.add(Calendar.DATE, 1);
+            firstDayOfWeek.add(Calendar.DATE, 1);
         }
 
         invalidate();

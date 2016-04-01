@@ -205,9 +205,9 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
     }
 
     // Utils for calendar
-    public int getCalendarDayForShift() {
+    public static int getCalendarDayForShift(@PossibleWeekShift int weekShift) {
         int dayForShift;
-        switch (mFirstDayOfTheWeekShift) {
+        switch (weekShift) {
             case SUNDAY_SHIFT: {
                 dayForShift = Calendar.SUNDAY;
                 break;
