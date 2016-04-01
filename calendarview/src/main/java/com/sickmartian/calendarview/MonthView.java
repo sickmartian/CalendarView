@@ -220,7 +220,7 @@ public class MonthView extends CalendarView
             int previousFirstCellOfMonth = mFirstCellOfMonth;
 
             // Apply changes
-            setupWeekDays(); // Reset weekday names
+            mWeekDays = getWeekdaysForShift(mFirstDayOfTheWeekShift); // Reset weekday names
             setDateInternal(mMonth, mYear); // Reset cells - Invalidates the view
 
             // Save month's content (discard out of month data)
@@ -510,7 +510,7 @@ public class MonthView extends CalendarView
         float topOffset = 0;
         // Weekday
         if (cellNumber < 7) {
-            mCurrentWeekDayTextColor.getTextBounds(mWeekDays[cellNumber], 0, mWeekDays[cellNumber].length(), mReusableTextBound);
+            mCurrentWeekDayTextColor.getTextBounds("S", 0, 1, mReusableTextBound);
 
             int decorationLeftOffset = 0;
             if (mDecorationSize > 0) {

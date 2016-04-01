@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -200,7 +201,7 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
         // We will draw ourselves, even if we are a ViewGroup
         setWillNotDraw(false);
 
-        setupWeekDays();
+        mWeekDays = getWeekdaysForShift(mFirstDayOfTheWeekShift);
     }
 
     // Utils for calendar
@@ -232,14 +233,20 @@ public abstract class CalendarView extends ViewGroup implements GestureDetector.
         calendar.set(Calendar.MILLISECOND, 0);
     }
 
-    protected void setupWeekDays() {
-        mWeekDays = new String[DAYS_IN_WEEK];
+    public static String[] getWeekdaysForShift(int firstDayOfTheWeekShift) {
+        String[] weekDays = new String[DAYS_IN_WEEK];
         String[] namesOfDays = new DateFormatSymbols().getShortWeekdays();
+
         for (int i = 0; i < DAYS_IN_WEEK; i++) {
-            mWeekDays[i] = namesOfDays[1 + (7 - mFirstDayOfTheWeekShift + i) % 7]
-                    .toUpperCase()
-                    .substring(0, 1);
+            weekDays[i] = namesOfDays[1 + (DAYS_IN_WEEK - firstDayOfTheWeekShift + i) % DAYS_IN_WEEK]
+                    .toUpperCase();
+            if (Locale.getDefault().getISO3Language().equalsIgnoreCase("zho")) {
+                weekDays[i] = weekDays[i].substring(1, 2);
+            } else {
+                weekDays[i] = weekDays[i].substring(0, 1);
+            }
         }
+        return weekDays;
     }
 
     // Common interface

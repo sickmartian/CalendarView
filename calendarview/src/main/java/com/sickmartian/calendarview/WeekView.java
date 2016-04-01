@@ -258,7 +258,7 @@ public class WeekView extends CalendarView
             mFirstDayOfTheWeekShift = firstDayOfTheWeekShift;
 
             // Apply changes
-            setupWeekDays(); // Reset weekday names
+            mWeekDays = getWeekdaysForShift(mFirstDayOfTheWeekShift); // Reset weekday names
             setDateInternal(mDay); // Reset cells - Invalidates the view
 
             requestLayout();
@@ -494,7 +494,7 @@ public class WeekView extends CalendarView
         float topOffset = 0;
         // Weekday
         if (cellNumber < 7) {
-            mCurrentWeekDayTextColor.getTextBounds(mWeekDays[cellNumber], 0, mWeekDays[cellNumber].length(), mReusableTextBound);
+            mCurrentWeekDayTextColor.getTextBounds("S", 0, 1, mReusableTextBound);
 
             int decorationLeftOffset = 0;
             if (mDecorationSize > 0) {
