@@ -1,0 +1,3 @@
+[submodule "calendarview"]
+	path = calendarview
+	url = ssh://git@git.sickmartian.com:49617/mnt/HD/HD_a2/GIT/CalendarViewLib.git/
