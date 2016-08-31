@@ -87,6 +87,7 @@
         calendar_view:currentDayDecorationSize="16dp"
         calendar_view:currentDayTextColor="@color/colorInvertedText"
         calendar_view:showOverflow="true"
+        calendar_view:separateDaysVertically="true"
         calendar_view:overflowColor="@color/colorPrimary"
         calendar_view:overflowHeight="2dp"
         calendar_view:separatorColor="@color/colorCalendarDivider"
