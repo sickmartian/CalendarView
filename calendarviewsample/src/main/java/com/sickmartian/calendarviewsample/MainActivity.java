@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     public void setStateByCalendar(Calendar cal) {
         mYear = cal.get(Calendar.YEAR);
         mMonth = cal.get(Calendar.MONTH) + 1; // We use base 1 months..
-                                              // You should use joda time or a sane calendar really
+                                              // You should use joda time or a sane Calendar really
         mDay = cal.get(Calendar.DATE);
     }
 
