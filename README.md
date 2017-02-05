@@ -42,9 +42,9 @@ compile 'com.sickmartian.calendarview:calendarview:1.0.0'
 
 The API for getting the pressed, current and/or selected day works via the **DayMetadata** class. `DayMetadata` is just a value holder for the day, month and year. It takes the months of the year starting with 1 (so January is 1, December is 12, like joda-time does)
 
-Some methods also have a `Calendar` alternative that is _just there for convenience_, in this case the Day, Month and Year values will be read directly, no timezone awarenes is built in.
+Some methods also have a `Calendar` alternative that is just there for convenience, in this case the Day, Month and Year values will be read directly, no timezone awarenes is built in.
 
-Adding views to the view group can be done via via the day of the month for the `MonthView` (`addViewToDayInCurrentMonth`) or using DayMetadata for the `WeekView` (`addViewToDay`).
+Adding views to the view group can be done via the day of the month for the `MonthView` (`addViewToDayInCurrentMonth`) or using `DayMetadata` for the `WeekView` (`addViewToDay`).
 
 Alternatively you can use the cell id (`addViewToCell`), this is not perfect as the state won't be preserved on rotation in some cases but at least allows you to add data to neightbor months when using `MonthView`.
 
@@ -54,9 +54,9 @@ First day of the week is set like this
 ```
 
 ### In Action
-This library powers the [Trackendar App that you can find on Google Play](https://play.google.com/store/apps/details?id=com.sickmartian.calendartracker) download it to see it in a production scenario
+This library powers the [Trackendar app that you can find on Google Play](https://play.google.com/store/apps/details?id=com.sickmartian.calendartracker) download it to see it in a production scenario
 
-Alternatively just clone the repo and submodule using
+Alternatively just clone the repo and submodule using:
 
 `git clone --recursive https://github.com/sickmartian/CalendarView.git`
 
