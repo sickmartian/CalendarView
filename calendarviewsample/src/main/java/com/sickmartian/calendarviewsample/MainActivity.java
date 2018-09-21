@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         int firstDayOfWeek = CalendarView.SUNDAY_SHIFT;
@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
 
         // The two views can't have the same id, or the state won't be preserved
         // correctly and they will throw an exception
-        mCalendarView = (CalendarView) findViewById(R.id.monthView);
+        mCalendarView = findViewById(R.id.monthView);
         if (mCalendarView == null) {
-            mCalendarView = (CalendarView) findViewById(R.id.weekView);
+            mCalendarView = findViewById(R.id.weekView);
         }
 
         setDateByStateDependingOnView();
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button setDate = (Button) findViewById(R.id.set_date);
+        Button setDate = findViewById(R.id.set_date);
         setDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RadioButton sunday = (RadioButton) findViewById(R.id.start_sunday);
+        RadioButton sunday = findViewById(R.id.start_sunday);
         sunday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RadioButton monday = (RadioButton) findViewById(R.id.start_monday);
+        RadioButton monday = findViewById(R.id.start_monday);
         monday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RadioButton saturday = (RadioButton) findViewById(R.id.start_saturday);
+        RadioButton saturday = findViewById(R.id.start_saturday);
         saturday.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button addView1 = (Button) findViewById(R.id.add_content1);
+        Button addView1 = findViewById(R.id.add_content1);
         addView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button addView2 = (Button) findViewById(R.id.add_content2);
+        Button addView2 = findViewById(R.id.add_content2);
         addView2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button delFirst = (Button) findViewById(R.id.remove_first);
+        Button delFirst = findViewById(R.id.remove_first);
         delFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button delLast = (Button) findViewById(R.id.remove_last);
+        Button delLast = findViewById(R.id.remove_last);
         delLast.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
