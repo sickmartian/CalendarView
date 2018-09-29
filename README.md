@@ -62,7 +62,7 @@ Alternatively just clone the repo and submodule using:
 
 The sample app that's on the screenshots can be used to test the library.
 
-###License
+### License
 <pre>
 Copyright 2017 sickmartian
 
